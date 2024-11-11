@@ -25,3 +25,22 @@ def performer_menu_keyboard() -> InlineKeyboardMarkup:
             ]
         ]
     )
+
+
+def both_menu_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text='Опубликовать новый заказ 🏷️',
+                    callback_data='new_bid'
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text='Искать заказы 🔎',
+                    callback_data='search_bids'
+                )
+            ]
+        ]
+    )

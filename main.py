@@ -9,6 +9,7 @@ from app.database.queues.create_tables import create_tables
 
 from app.routers.start import start_router
 from app.routers.menu import menu_router
+from app.routers.cities import cities_router
 
 
 load_dotenv(find_dotenv())
@@ -21,7 +22,8 @@ async def on_startup() -> None:
         bot = Bot(os.getenv('TELEGRAM_BOT_TOKEN'))
         dp = Dispatcher()
         dp.include_routers(start_router,
-                           menu_router)
+                           menu_router,
+                           cities_router)
 
         await bot.delete_webhook(drop_pending_updates=True)
         await dp.start_polling(bot)
