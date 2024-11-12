@@ -9,6 +9,12 @@ def customer_menu_keyboard() -> InlineKeyboardMarkup:
                     text='Опубликовать новый заказ 🏷️',
                     callback_data='new_bid'
                 )
+            ],
+            [
+                InlineKeyboardButton(
+                    text='Сменить информацию профиля 👤',
+                    callback_data='profile'
+                )
             ]
         ]
     )
@@ -21,6 +27,12 @@ def performer_menu_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     text='Искать заказы 🔎',
                     callback_data='search_bids'
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text='Сменить информацию профиля 👤',
+                    callback_data='profile'
                 )
             ]
         ]
