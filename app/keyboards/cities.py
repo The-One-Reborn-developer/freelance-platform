@@ -17,7 +17,7 @@ def cities_keyboard() -> InlineKeyboardMarkup:
         + [
             [
                 InlineKeyboardButton(
-                    text='Назад 🔙',
+                    text='Назад в меню 🔙',
                     callback_data='menu'
                 )
             ]

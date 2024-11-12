@@ -23,9 +23,11 @@ def get_user_by_id(telegram_id: int) -> User | None:
                     return [
                         user.id,
                         user.telegram_id,
-                        user.username,
+                        user.full_name,
                         user.is_performer,
-                        user.is_customer
+                        user.is_customer,
+                        user.rate,
+                        user.experience
                     ]
                 else:
                     return None
