@@ -12,6 +12,12 @@ def customer_menu_keyboard() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
+                    text='Просмотреть мои заказы 📂',
+                    callback_data='look_bids'
+                )
+            ],
+            [
+                InlineKeyboardButton(
                     text='Сменить информацию профиля 👤',
                     callback_data='profile'
                 )
