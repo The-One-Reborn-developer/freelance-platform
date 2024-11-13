@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, String, Text, Float, ForeignKey, UniqueConstraint
+from sqlalchemy import BigInteger, String, Text, ForeignKey, UniqueConstraint, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.models.base import Base
@@ -11,6 +11,8 @@ class Bid(Base):
     customer_telegram_id: Mapped[BigInteger] = mapped_column(BigInteger)
     city: Mapped[str] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(Text)
+    deadline: Mapped[str] = mapped_column(String(255))
+    instrument_provided: Mapped[bool] = mapped_column(Boolean, default=False)
 
     responses = relationship('Response', back_populates='bid')
 

@@ -67,7 +67,8 @@ async def customer_callback_handler(message: Message, state: FSMContext):
 
     data = await state.get_data()
     put_user(telegram_id=message.from_user.id,
-             full_name=data['name'], is_customer=True)
+             full_name=data['name'],
+             is_customer=True)
 
     content = 'Вы успешно зарегистрированы как заказчик!\n\n' \
               'Выберите опцию ⏬'
