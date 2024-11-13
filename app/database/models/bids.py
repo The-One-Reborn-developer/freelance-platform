@@ -11,7 +11,6 @@ class Bid(Base):
     customer_telegram_id: Mapped[BigInteger] = mapped_column(BigInteger)
     city: Mapped[str] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(Text)
-    price: Mapped[int] = mapped_column(Float)
 
     responses = relationship('Response', back_populates='bid')
 
