@@ -87,16 +87,34 @@ async def profile_performer_name_change_handler(message: Message, state: FSMCont
 
 @profile_router.message(PerformerInfoChange.rate)
 async def profile_performer_rate_change_handler(message: Message, state: FSMContext):
-    await state.update_data(rate=message.text)
+    rate = message.text
+
+    if not rate.isdigit():
+        content = 'Пожалуйста, введите свою ставку в ₽ числом.'
+
+        await message.answer(content)
+        return
+    
+    await state.update_data(rate=rate)
     await state.set_state(PerformerInfoChange.experience)
 
-    content = 'Введите свой стаж в годах.'
+    content = 'Введите свой стаж в годах (только число).'
 
     await message.answer(content)
 
 
 @profile_router.message(PerformerInfoChange.experience)
 async def profile_performer_experience_change_handler(message: Message, state: FSMContext):
+    experience = message.text
+
+    try:
+        experience = int(experience)
+    except ValueError:
+        content = 'Пожалуйста, введите свой стаж в годах числом.'
+
+        await message.answer(content)
+        return
+
     await state.update_data(experience=message.text)
     
     data = await state.get_data()

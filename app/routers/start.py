@@ -101,17 +101,35 @@ async def performer_registration_name_handler(message: Message, state: FSMContex
 
 @start_router.message(PerformerRegistration.rate)
 async def performer_registration_rate_handler(message: Message, state: FSMContext):
-    await state.update_data(rate=message.text)
+    rate = message.text
+
+    if not rate.isdigit():
+        content = 'Пожалуйста, введите свою ставку в ₽ числом.'
+
+        await message.answer(content)
+        return
+    
+    await state.update_data(rate=rate)
     await state.set_state(PerformerRegistration.experience)
 
-    content = 'Введите свой стаж в годах.'
+    content = 'Введите свой стаж в годах (только число).'
 
     await message.answer(content)
 
 
 @start_router.message(PerformerRegistration.experience)
 async def performer_registration_experience_handler(message: Message, state: FSMContext):
-    await state.update_data(experience=message.text)
+    experience = message.text
+
+    try:
+        experience = int(experience)
+    except ValueError:
+        content = 'Пожалуйста, введите свой стаж в годах числом.'
+
+        await message.answer(content)
+        return
+    
+    await state.update_data(experience=experience)
 
     data = await state.get_data()
 
