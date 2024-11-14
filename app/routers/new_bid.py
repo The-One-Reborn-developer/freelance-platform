@@ -92,5 +92,7 @@ async def new_bid_description_handler(callback: CallbackQuery, state: FSMContext
         content = 'Заявка создана! ☑️\n' \
                   'При отклике на заявку Вы получите уведомление.'
     
+        await state.clear()
+
         await callback.message.answer(content, reply_markup=customer_menu_keyboard())
 

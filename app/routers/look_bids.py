@@ -6,6 +6,7 @@ from aiogram.fsm.state import State, StatesGroup
 from app.database.queues.get_bids_by_id import get_bids_by_id
 from app.database.queues.get_user_by_id import get_user_by_id
 from app.database.queues.close_bid import close_bid
+from app.database.queues.get_responses_by_id import get_responses_by_id
 
 
 look_bids_router = Router()
@@ -75,3 +76,14 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
             await callback.message.answer(content)
     elif callback.data.startswith('look_responses_'):
         bid_id = callback.data.split('_')[2]
+
+        responses = get_responses_by_id(bid_id)
+
+        if responses:
+            for response in responses:
+                content = f'<b>Отклик:</b> <u>{response["id"]}</u>\n' \
+                          f'<b>Имя исполнителя:</b> {response["performer_full_name"]}\n' \
+                          f'<b>Ставка:</b> {response["performer_rate"]}\n' \
+                          f'<b>Стаж работы в годах:</b> {response["performer_experience"]}'
+
+                await callback.message.answer(content, parse_mode='HTML')

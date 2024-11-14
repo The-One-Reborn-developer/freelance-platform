@@ -1,4 +1,11 @@
-from sqlalchemy import BigInteger, String, Text, ForeignKey, UniqueConstraint, Boolean
+from sqlalchemy import (BigInteger,
+                        String,
+                        Text,
+                        ForeignKey,
+                        UniqueConstraint,
+                        Boolean,
+                        Float,
+                        Integer)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.models.base import Base
@@ -24,6 +31,9 @@ class Response(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     bid_id: Mapped[int] = mapped_column(ForeignKey('bids.id'))
     performer_telegram_id: Mapped[BigInteger] = mapped_column(BigInteger)
+    performer_full_name: Mapped[str] = mapped_column(String(255))
+    performer_rate: Mapped[float] = mapped_column(Float, default=0.0)
+    performer_experience: Mapped[int] = mapped_column(Integer, default=0)
 
     bid = relationship('Bid', back_populates='responses')
 

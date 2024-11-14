@@ -72,7 +72,13 @@ async def search_bids_city_handler(callback: CallbackQuery, state: FSMContext):
 
 @search_bids_router.callback_query(SearchBids.selection)
 async def search_bids_selection_handler(callback: CallbackQuery, state: FSMContext):
-    response = post_response(callback.data, int(callback.from_user.id))
+    performer = get_user_by_id(callback.from_user.id)
+
+    response = post_response(callback.data,
+                             performer[1],
+                             performer[2],
+                             performer[5],
+                             performer[6])
 
     if response == False:
         content = 'Вы уже откликнулись на данный заказ!'
