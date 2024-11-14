@@ -8,7 +8,7 @@ def post_bid(customer_telegram_id: int,
              city: str,
              description: str,
              deadline: str,
-             instrument_provided: bool) -> None:
+             instrument_provided: bool) -> bool | None:
     """
     Creates a new bid in the database if the bid does not already exist.
 
@@ -37,5 +37,10 @@ def post_bid(customer_telegram_id: int,
                               deadline=deadline,
                               instrument_provided=instrument_provided)
                     session.add(bid)
+
+                    return True
+                else:
+                    return False
             except Exception as e:
                 print(f'Error creating bid: {e}')
+                return None

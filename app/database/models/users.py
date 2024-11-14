@@ -14,3 +14,4 @@ class User(Base):
     is_customer: Mapped[bool] = mapped_column(Boolean, default=False)
     rate: Mapped[float] = mapped_column(Float, default=0.0)
     experience: Mapped[int] = mapped_column(Integer, default=0)
+    chat_id: Mapped[BigInteger] = mapped_column(BigInteger, nullable=True)

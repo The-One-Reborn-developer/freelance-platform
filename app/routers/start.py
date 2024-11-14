@@ -62,13 +62,14 @@ async def customer_callback_handler(callback: CallbackQuery, state: FSMContext):
 
 
 @start_router.message(CustomerRegistration.name)
-async def customer_callback_handler(message: Message, state: FSMContext):
+async def customer_registration_name_handler(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
 
     data = await state.get_data()
     put_user(telegram_id=message.from_user.id,
              full_name=data['name'],
-             is_customer=True)
+             is_customer=True,
+             chat_id=message.chat.id)
 
     content = 'Вы успешно зарегистрированы как заказчик!\n\n' \
               'Выберите опцию ⏬'
@@ -79,7 +80,7 @@ async def customer_callback_handler(message: Message, state: FSMContext):
 
 
 @start_router.callback_query(F.data == 'performer')
-async def customer_callback_handler(callback: CallbackQuery, state: FSMContext):
+async def performer_callback_handler(callback: CallbackQuery, state: FSMContext):
     await state.update_data(type=callback.data)
     await state.set_state(PerformerRegistration.name)
 
@@ -89,7 +90,7 @@ async def customer_callback_handler(callback: CallbackQuery, state: FSMContext):
 
 
 @start_router.message(PerformerRegistration.name)
-async def performer_callback_handler(message: Message, state: FSMContext):
+async def performer_registration_name_handler(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
     await state.set_state(PerformerRegistration.rate)
 
@@ -99,7 +100,7 @@ async def performer_callback_handler(message: Message, state: FSMContext):
 
 
 @start_router.message(PerformerRegistration.rate)
-async def performer_callback_handler(message: Message, state: FSMContext):
+async def performer_registration_rate_handler(message: Message, state: FSMContext):
     await state.update_data(rate=message.text)
     await state.set_state(PerformerRegistration.experience)
 
@@ -109,7 +110,7 @@ async def performer_callback_handler(message: Message, state: FSMContext):
 
 
 @start_router.message(PerformerRegistration.experience)
-async def performer_callback_handler(message: Message, state: FSMContext):
+async def performer_registration_experience_handler(message: Message, state: FSMContext):
     await state.update_data(experience=message.text)
 
     data = await state.get_data()
@@ -118,7 +119,8 @@ async def performer_callback_handler(message: Message, state: FSMContext):
              full_name=data['name'],
              is_performer=True,
              rate=float(data['rate']),
-             experience=int(data['experience']))
+             experience=int(data['experience']),
+             chat_id=message.chat.id)
 
     content = 'Вы успешно зарегистрированы как исполнитель!\n\n' \
               'Выберите опцию ⏬'

@@ -27,7 +27,8 @@ def get_user_by_id(telegram_id: int) -> User | None:
                         user.is_performer,
                         user.is_customer,
                         user.rate,
-                        user.experience
+                        user.experience,
+                        user.chat_id
                     ]
                 else:
                     return None

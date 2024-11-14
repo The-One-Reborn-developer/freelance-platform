@@ -70,16 +70,27 @@ async def new_bid_description_handler(callback: CallbackQuery, state: FSMContext
     elif data['instrument_provided'] == 'no':
         data['instrument_provided'] = 0
 
-    post_bid(customer_telegram_id=callback.from_user.id,
+    new_bid = post_bid(customer_telegram_id=callback.from_user.id,
              city=data['city'],
              description=data['description'],
              deadline=data['deadline'],
              instrument_provided=data['instrument_provided'])
-
-    await state.clear()
-
-    content = 'Заявка создана! ☑️\n' \
-              'При отклике на заявку Вы получите уведомление.'
     
-    await callback.message.answer(content, reply_markup=customer_menu_keyboard())
+    if new_bid == False:
+        content = 'Такая заявка уже существует!'
+
+        await state.clear()
+
+        await callback.message.answer(content, reply_markup=customer_menu_keyboard())
+    elif new_bid == None:
+        content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
+
+        await state.clear()
+
+        await callback.message.answer(content, reply_markup=customer_menu_keyboard())
+    else:
+        content = 'Заявка создана! ☑️\n' \
+                  'При отклике на заявку Вы получите уведомление.'
+    
+        await callback.message.answer(content, reply_markup=customer_menu_keyboard())
 
