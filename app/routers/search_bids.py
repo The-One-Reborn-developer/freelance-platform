@@ -45,11 +45,10 @@ async def search_bids_city_handler(callback: CallbackQuery, state: FSMContext):
                 bid['instrument_provided'] = 'Нет'
 
             content = f'<b>Номер заказа:</b> <u>{bid["id"]}</u>\n' \
-                f'<b>Заказчик:</b> <i>{customer_full_name}</i>\n' \
-                f'<b>Описание:</b> {bid["description"]}\n' \
-                f'<b>До какого числа нужно выполнить работу:</b> <i>{bid["deadline"]}</i>\n' \
-                f'<b>Предоставляет инструмент:</b> <i>{
-                    bid["instrument_provided"]}</i>'
+                      f'<b>Заказчик:</b> <i>{customer_full_name}</i>\n' \
+                      f'<b>Описание:</b> {bid["description"]}\n' \
+                      f'<b>До какого числа нужно выполнить работу:</b> <i>{bid["deadline"]}</i>\n' \
+                      f'<b>Предоставляет инструмент:</b> <i>{bid["instrument_provided"]}</i>'
 
             await state.set_state(SearchBids.selection)
 

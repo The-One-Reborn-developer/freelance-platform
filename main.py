@@ -12,6 +12,7 @@ from app.routers.menu import menu_router
 from app.routers.profile import profile_router
 from app.routers.new_bid import new_bid_router
 from app.routers.search_bids import search_bids_router
+from app.routers.look_bids import look_bids_router
 
 
 load_dotenv(find_dotenv())
@@ -27,7 +28,8 @@ async def on_startup() -> None:
                            menu_router,
                            profile_router,
                            new_bid_router,
-                           search_bids_router)
+                           search_bids_router,
+                           look_bids_router)
 
         await bot.delete_webhook(drop_pending_updates=True)
         await dp.start_polling(bot)

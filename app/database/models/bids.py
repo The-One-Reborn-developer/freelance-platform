@@ -13,6 +13,7 @@ class Bid(Base):
     description: Mapped[str] = mapped_column(Text)
     deadline: Mapped[str] = mapped_column(String(255))
     instrument_provided: Mapped[bool] = mapped_column(Boolean, default=False)
+    closed: Mapped[bool] = mapped_column(Boolean, default=False)
 
     responses = relationship('Response', back_populates='bid')
 

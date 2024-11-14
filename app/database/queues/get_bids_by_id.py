@@ -4,20 +4,12 @@ from app.database.models.bids import Bid
 from app.database.models.sync_session import sync_session
 
 
-def get_bids_by_city(city: str) -> list[dict]:
-    """
-    Retrieves all bids for the specified city.
-
-    Args:
-        city (str): The name of the city to filter bids.
-
-    Returns:
-        list[dict]: A list of dictionaries with bid details for each bid in the specified city.
-    """
+def get_bids_by_id(telegram_id: int) -> list[dict]:
     with sync_session() as session:
         with session.begin():
             try:
-                bids = session.scalars(select(Bid).where(Bid.city == city, Bid.closed == False)).all()
+                bids = session.scalars(select(Bid).where(Bid.customer_telegram_id == telegram_id,
+                                                         Bid.closed == False)).all()
 
                 return [
                     {
@@ -26,8 +18,7 @@ def get_bids_by_city(city: str) -> list[dict]:
                         'city': bid.city,
                         'description': bid.description,
                         'deadline': bid.deadline,
-                        'instrument_provided': bid.instrument_provided,
-                        'closed': bid.closed
+                        'instrument_provided': bid.instrument_provided
                     }
                     for bid in bids
                 ]
