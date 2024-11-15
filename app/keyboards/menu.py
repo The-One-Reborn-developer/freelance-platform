@@ -37,6 +37,12 @@ def performer_menu_keyboard() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
+                    text='Просмотреть переписки по активным заказам 📨',
+                    callback_data='look_chats'
+                )
+            ],
+            [
+                InlineKeyboardButton(
                     text='Сменить информацию профиля 👤',
                     callback_data='profile'
                 )
@@ -64,6 +70,12 @@ def both_menu_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     text='Искать заказы 🔎',
                     callback_data='search_bids'
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text='Просмотреть переписки по активным заказам 📨',
+                    callback_data='look_chats'
                 )
             ],
             [

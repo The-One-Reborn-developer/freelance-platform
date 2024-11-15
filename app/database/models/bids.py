@@ -34,6 +34,7 @@ class Response(Base):
     performer_full_name: Mapped[str] = mapped_column(String(255))
     performer_rate: Mapped[float] = mapped_column(Float, default=0.0)
     performer_experience: Mapped[int] = mapped_column(Integer, default=0)
+    chat_started: Mapped[bool] = mapped_column(Boolean, default=False)
 
     bid = relationship('Bid', back_populates='responses')
 

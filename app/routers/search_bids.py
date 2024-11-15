@@ -63,8 +63,6 @@ async def search_bids_city_handler(callback: CallbackQuery, state: FSMContext):
 
             await callback.message.answer(content, parse_mode='HTML', reply_markup=keyboard)
     else:
-        await state.clear()
-
         content = 'На данный момент нет свободных заказов 🙁'
 
         await callback.message.answer(content)
