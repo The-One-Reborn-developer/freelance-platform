@@ -173,6 +173,21 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
         if response:
             messages = [msg.strip() for msg in response.split("---") if msg.strip()]
             for message in messages:
-                await callback.message.answer(message)
+                if "video_file_id:" in message:
+                    lines = message.split("\n")
+                    text_lines = []
+                    video_file_id = None
+
+                    for line in lines:
+                        if line.startswith("video_file_id:"):
+                            video_file_id = line.split(":", 1)[1].strip()
+                        else:
+                            text_lines.append(line.strip())
+                    
+                    caption = "\n".join(text_lines)
+                    
+                    await callback.message.answer_video(video=video_file_id, caption=caption)
+                else:
+                    await callback.message.answer(message)
         else:
             await callback.message.answer("Чат пока пуст или произошла ошибка.")
