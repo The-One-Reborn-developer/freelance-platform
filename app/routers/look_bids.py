@@ -7,10 +7,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
 from app.database.queues.get_bids_by_id import get_bids_by_id
+from app.database.queues.get_bid_by_id import get_bid_by_id
 from app.database.queues.get_user_by_id import get_user_by_id
 from app.database.queues.close_bid import close_bid
 from app.database.queues.get_responses_by_id import get_responses_by_id
 from app.database.queues.put_response import put_response
+from app.database.queues.get_all_performer_chats import get_all_performer_chats
 
 from app.scripts.save_customer_chat_message import save_customer_chat_message
 
@@ -22,8 +24,9 @@ look_bids_router = Router()
 
 class LookBids(StatesGroup):
     selection = State()
-    write_to_performer = State()
+    performer_actions = State()
     message = State()
+    chat = State()
 
 
 @look_bids_router.callback_query(F.data == 'look_bids')
@@ -72,7 +75,6 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
         bid_closed = close_bid(int(bid_id))
 
         if bid_closed:
-            user = get_user_by_id(callback.from_user.id)
             content = f'Заказ №{bid_id} закрыт как выполненный ✅'
             
             await callback.message.answer(content)
@@ -85,7 +87,7 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
             
             await callback.message.answer(content)
     elif callback.data.startswith('look_responses_'):
-        await state.set_state(LookBids.write_to_performer)
+        await state.set_state(LookBids.performer_actions)
 
         bid_id = callback.data.split('_')[2]
 
@@ -93,7 +95,7 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
 
         if responses:
             for response in responses:
-                content = f'<b>Отклик:</b> <u>{response["id"]}</u>\n' \
+                content = f'<b>Отклик на заказ №{bid_id}:</b> <u>{response["id"]}</u>\n' \
                           f'<b>Имя исполнителя:</b> {response["performer_full_name"]}\n' \
                           f'<b>Ставка:</b> {response["performer_rate"]}\n' \
                           f'<b>Стаж работы в годах:</b> {response["performer_experience"]}'
@@ -103,6 +105,10 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
                         [
                             InlineKeyboardButton(text='Написать подрядчику ✉️',
                                                  callback_data=f'write_to_performer_{response["performer_telegram_id"]}_{bid_id}'),
+                        ],
+                        [
+                            InlineKeyboardButton(text='Посмотреть переписки подрядчика 📨',
+                                                 callback_data=f'look_performer_chats_{response["performer_telegram_id"]}')
                         ]
                     ]
                 )
@@ -114,21 +120,67 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
             await callback.message.answer(content)
 
 
-@look_bids_router.callback_query(LookBids.write_to_performer)
+@look_bids_router.callback_query(LookBids.performer_actions)
 async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: FSMContext):
-    performer_telegram_id = callback.data.split('_')[3]
-    performer_chat_id = get_user_by_id(performer_telegram_id)[7]
+    if callback.data.startswith('write_to_performer_'):
+        performer_telegram_id = callback.data.split('_')[3]
+        performer_chat_id = get_user_by_id(performer_telegram_id)[7]
 
-    bid_id = callback.data.split('_')[4]
+        bid_id = callback.data.split('_')[4]
 
-    await state.update_data(performer_telegram_id=performer_telegram_id,
-                            performer_chat_id=performer_chat_id,
-                            bid_id=bid_id)
-    await state.set_state(LookBids.message)
+        await state.update_data(performer_telegram_id=performer_telegram_id,
+                                performer_chat_id=performer_chat_id,
+                                bid_id=bid_id)
+        await state.set_state(LookBids.message)
 
-    content = 'Введите текст сообщения.'
+        content = 'Введите текст сообщения.'
 
-    await callback.message.answer(content)
+        await callback.message.answer(content)
+    elif callback.data.startswith('look_performer_chats_'):
+        await state.set_state(LookBids.chat)
+
+        performer_telegram_id = callback.data.split('_')[3]
+
+        chats = get_all_performer_chats(performer_telegram_id)
+        
+        if chats:
+            for chat in chats:
+                bid_id = int(chat)
+
+                customer_telegram_id = get_bid_by_id(bid_id)[1]
+                customer_full_name = get_user_by_id(get_bid_by_id(bid_id)[1])[2]
+                city = get_bid_by_id(bid_id)[2]
+                description = get_bid_by_id(bid_id)[3]
+                deadline = get_bid_by_id(bid_id)[4]
+                instrument_provided = get_bid_by_id(bid_id)[5]
+                if instrument_provided == 1:
+                    instrument_provided = 'Да'
+                else:
+                    instrument_provided = 'Нет'
+                closed = get_bid_by_id(bid_id)[6]
+                if closed == 1:
+                    closed = 'Выполнен'
+                else:
+                    closed = 'Не выполнен'
+
+                content = f'<b>Заказ №:</b> <u>{bid_id}</u>\n' \
+                          f'<b>Имя заказчика:</b> {customer_full_name}\n' \
+                          f'<b>Город:</b> {city}\n' \
+                          f'<b>Описание:</b> {description}\n' \
+                          f'<b>Сроки выполнения:</b> <i>{deadline}</i>\n' \
+                          f'<b>Предоставляет инструмент:</b> <i>{instrument_provided}</i>\n' \
+                          f'<b>Статус заказа:</b> {closed}'
+                
+                keyboard = InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(text='Смотреть переписку этого заказа 📨',
+                                                    callback_data=f'look_performer_chat_{bid_id}_{customer_telegram_id}_{performer_telegram_id}')
+                        ]
+                    ]
+                )
+                
+                await callback.message.answer(content, parse_mode='HTML', reply_markup=keyboard)
 
 
 @look_bids_router.message(LookBids.message)
@@ -165,3 +217,22 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
     await state.clear()
 
     await message.answer(content, reply_markup=customer_menu_keyboard())
+
+'''
+@look_bids_router.callback_query(LookBids.chat)
+async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: FSMContext):
+    if callback.data.startswith('look_performer_chat_'):
+        bid_id = callback.data.split('_')[3]
+        customer_telegram_id = callback.data.split('_')[4]
+        performer_telegram_id = callback.data.split('_')[5]
+
+        response = get_performer_chat(bid_id,
+                                      customer_telegram_id,
+                                      performer_telegram_id)
+
+        if response:
+            for message in response:
+                content = f'{message["text"]}'
+                
+                await callback.message.answer(content)
+'''

@@ -25,23 +25,28 @@ async def look_chats_handler(callback: CallbackQuery):
 
     if responses:
         for response in responses:
-            customer_telegram_id = get_bid_by_id(response["bid_id"])[1]
-            customer_full_name = get_user_by_id(customer_telegram_id)[2]
-
-            content = f'<b>Отклик:</b> <u>{response["id"]}</u>\n' \
-                      f'<b>Номер заказа:</b> <i>{response["bid_id"]}</i>\n' \
-                      f'<b>Имя заказчика:</b> <i>{customer_full_name}</i>'
-                      
-            keyboard = InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [
-                        InlineKeyboardButton(text='Написать заказчику ✉️',
-                                             callback_data=f'write_to_customer_{customer_telegram_id}_{response["bid_id"]}')
-                    ]
-                ]
-            )
+            bid_closed = get_bid_by_id(response["bid_id"])[6]
             
-            await callback.message.answer(content, reply_markup=keyboard, parse_mode='HTML')
+            if bid_closed:
+                continue
+            else:
+                customer_telegram_id = get_bid_by_id(response["bid_id"])[1]
+                customer_full_name = get_user_by_id(customer_telegram_id)[2]
+
+                content = f'<b>Отклик:</b> <u>{response["id"]}</u>\n' \
+                        f'<b>Номер заказа:</b> <i>{response["bid_id"]}</i>\n' \
+                        f'<b>Имя заказчика:</b> <i>{customer_full_name}</i>'
+                        
+                keyboard = InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(text='Написать заказчику ✉️',
+                                                callback_data=f'write_to_customer_{customer_telegram_id}_{response["bid_id"]}')
+                        ]
+                    ]
+                )
+                
+                await callback.message.answer(content, reply_markup=keyboard, parse_mode='HTML')
     else:
         content = 'Вам ещё не писал заказчик.\n' \
                   'Как только какой-либо заказчик напишет Вам, вы сможете увидеть его здесь.'
