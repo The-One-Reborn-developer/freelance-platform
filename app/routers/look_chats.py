@@ -60,7 +60,7 @@ async def write_to_customer_handler(callback: CallbackQuery, state: FSMContext):
     await state.update_data(customer_telegram_id=callback.data.split('_')[3],
                             bid_id=callback.data.split('_')[4])
 
-    content = 'Введите текст сообщения.'
+    content = 'Введите текст сообщения, можете прикрепить видео 📹'
 
     await callback.message.answer(content)
 
@@ -75,18 +75,34 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
     customer_full_name = get_user_by_id(customer_telegram_id)[2]
     performer_full_name = get_user_by_id(performer_telegram_id)[2]
     
-    save_performer_chat_message(bid_id,
-                      customer_telegram_id,
-                      performer_telegram_id,
-                      customer_full_name,
-                      performer_full_name,
-                      message.text)
-    
-    message_content = f'Сообщение от подрядчика {get_user_by_id(message.from_user.id)[2]}:\n\n{message.text}'
+    if message.video:
+        save_performer_chat_message(bid_id,
+                                    customer_telegram_id,
+                                    performer_telegram_id,
+                                    customer_full_name,
+                                    performer_full_name,
+                                    message.caption,
+                                    message.video.file_id)
+        
+        message_content = f'Сообщение от подрядчика {get_user_by_id(message.from_user.id)[2]}:\n\n{message.caption}'
 
-    await message.bot.send_message(chat_id=customer_telegram_id,
-                                   text=message_content)
-    
+        await message.bot.send_video(chat_id=customer_telegram_id,
+                                     video=message.video.file_id,
+                                     caption=message_content)
+    else:    
+        save_performer_chat_message(bid_id,
+                                    customer_telegram_id,
+                                    performer_telegram_id,
+                                    customer_full_name,
+                                    performer_full_name,
+                                    message.text,
+                                    None)
+        
+        message_content = f'Сообщение от подрядчика {get_user_by_id(message.from_user.id)[2]}:\n\n{message.text}'
+
+        await message.bot.send_message(chat_id=customer_telegram_id,
+                                       text=message_content)
+        
     content = 'Сообщение отправлено!'
 
     await state.clear()
