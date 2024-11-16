@@ -15,7 +15,7 @@ from app.database.queues.put_response import put_response
 from app.database.queues.get_all_performer_chats import get_all_performer_chats
 
 from app.scripts.save_customer_chat_message import save_customer_chat_message
-from app.scripts.get_performer_chat import get_performer_chat
+from app.scripts.get_chat import get_chat
 
 from app.keyboards.menu import customer_menu_keyboard
 
@@ -32,6 +32,7 @@ class LookBids(StatesGroup):
 
 @look_bids_router.callback_query(F.data == 'look_bids')
 async def look_bids_callback_handler(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
     await state.set_state(LookBids.selection)
 
     bids = get_bids_by_id(callback.from_user.id)
@@ -227,9 +228,9 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
         customer_telegram_id = callback.data.split('_')[4]
         performer_telegram_id = callback.data.split('_')[5]
 
-        response = get_performer_chat(bid_id,
-                                      customer_telegram_id,
-                                      performer_telegram_id)
+        response = get_chat(bid_id,
+                            customer_telegram_id,
+                            performer_telegram_id)
         
         if response:
             messages = [msg.strip() for msg in response.split("---") if msg.strip()]

@@ -1,7 +1,6 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
-from app.database.queues.put_user import put_user
 from app.database.queues.get_user_by_id import get_user_by_id
 
 from app.keyboards.menu import (customer_menu_keyboard,
@@ -23,4 +22,5 @@ async def menu_callback_handler(callback: CallbackQuery):
     elif user[3]:
         keyboard = performer_menu_keyboard()
 
-    await callback.message.answer(content, reply_markup=both_menu_keyboard())  # TODO: CHANGE TO 2 SEPARATE KEYBOARDS AFTER DEVELOPMENT
+    #await callback.message.answer(content, reply_markup=keyboard)
+    await callback.message.answer(content, reply_markup=both_menu_keyboard())
