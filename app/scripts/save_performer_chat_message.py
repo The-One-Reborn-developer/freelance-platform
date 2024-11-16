@@ -14,7 +14,7 @@ def save_performer_chat_message(bid_id: int,
     file_path = os.path.join(folder_path, file_name)
 
     separator = "\n---\n"
-    formatted_message = f"Сообщение от подрядчика {performer_full_name} заказчику {customer_full_name}:\n{message}{separator}"
+    formatted_message = f"Сообщение от подрядчика {performer_full_name} заказчику {customer_full_name}:\n\n{message}{separator}"
 
     with open(file_path, "a", encoding="utf-8") as file:
         file.write(formatted_message)

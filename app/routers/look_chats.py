@@ -34,8 +34,8 @@ async def look_chats_handler(callback: CallbackQuery):
                 customer_full_name = get_user_by_id(customer_telegram_id)[2]
 
                 content = f'<b>Отклик:</b> <u>{response["id"]}</u>\n' \
-                        f'<b>Номер заказа:</b> <i>{response["bid_id"]}</i>\n' \
-                        f'<b>Имя заказчика:</b> <i>{customer_full_name}</i>'
+                          f'<b>Номер заказа:</b> <i>{response["bid_id"]}</i>\n' \
+                          f'<b>Имя заказчика:</b> <i>{customer_full_name}</i>'
                         
                 keyboard = InlineKeyboardMarkup(
                     inline_keyboard=[

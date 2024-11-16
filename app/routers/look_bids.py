@@ -15,6 +15,7 @@ from app.database.queues.put_response import put_response
 from app.database.queues.get_all_performer_chats import get_all_performer_chats
 
 from app.scripts.save_customer_chat_message import save_customer_chat_message
+from app.scripts.get_performer_chat import get_performer_chat
 
 from app.keyboards.menu import customer_menu_keyboard
 
@@ -44,7 +45,7 @@ async def look_bids_callback_handler(callback: CallbackQuery, state: FSMContext)
             
             content = f'<b>Номер заказа:</b> <u>{bid["id"]}</u>\n' \
                       f'<b>Описание:</b> {bid["description"]}\n' \
-                      f'<b>До какого числа нужно выполнить работу:</b> <i>{bid["deadline"]}</i>\n' \
+                      f'<b>Сроки выполнения работ:</b> <i>{bid["deadline"]}</i>\n' \
                       f'<b>Предоставляет инструмент:</b> <i>{bid["instrument_provided"]}</i>'
             
             keyboard = InlineKeyboardMarkup(
@@ -167,7 +168,7 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
                           f'<b>Имя заказчика:</b> {customer_full_name}\n' \
                           f'<b>Город:</b> {city}\n' \
                           f'<b>Описание:</b> {description}\n' \
-                          f'<b>Сроки выполнения:</b> <i>{deadline}</i>\n' \
+                          f'<b>Сроки выполнения работ:</b> <i>{deadline}</i>\n' \
                           f'<b>Предоставляет инструмент:</b> <i>{instrument_provided}</i>\n' \
                           f'<b>Статус заказа:</b> {closed}'
                 
@@ -218,7 +219,7 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
 
     await message.answer(content, reply_markup=customer_menu_keyboard())
 
-'''
+
 @look_bids_router.callback_query(LookBids.chat)
 async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: FSMContext):
     if callback.data.startswith('look_performer_chat_'):
@@ -229,10 +230,10 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
         response = get_performer_chat(bid_id,
                                       customer_telegram_id,
                                       performer_telegram_id)
-
+        
         if response:
-            for message in response:
-                content = f'{message["text"]}'
-                
-                await callback.message.answer(content)
-'''
+            messages = [msg.strip() for msg in response.split("---") if msg.strip()]
+            for message in messages:
+                await callback.message.answer(message)
+        else:
+            await callback.message.answer("Чат пока пуст или произошла ошибка.")

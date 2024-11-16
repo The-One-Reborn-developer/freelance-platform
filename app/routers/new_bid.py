@@ -44,7 +44,7 @@ async def new_bid_description_handler(message: Message, state: FSMContext):
     await state.update_data(description=message.text)
     await state.set_state(NewBid.deadline)
 
-    content = 'Введите, до какого числа нужно выполнить работу 📅'
+    content = 'Введите сроки на выполнение работы 📅'
 
     await message.answer(content)
 
