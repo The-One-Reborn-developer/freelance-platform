@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
 from app.database.queues.get_responses_by_performer_telegram_id import get_responses_by_performer_telegram_id
-from app.database.queues.get_bid_by_id import get_bid_by_id
+from app.tasks.celery_app import get_bid_by_id_task
 from app.database.queues.get_user_by_id import get_user_by_id
 
 from app.scripts.save_performer_chat_message import save_performer_chat_message
@@ -25,12 +25,12 @@ async def look_chats_handler(callback: CallbackQuery):
 
     if responses:
         for response in responses:
-            bid_closed = get_bid_by_id(response["bid_id"])[6]
+            bid_closed = get_bid_by_id_task.delay(response["bid_id"]).get()[6]
             
             if bid_closed:
                 continue
             else:
-                customer_telegram_id = get_bid_by_id(response["bid_id"])[1]
+                customer_telegram_id = get_bid_by_id_task.delay(response["bid_id"]).get()[1]
                 customer_full_name = get_user_by_id(customer_telegram_id)[2]
 
                 content = f'<b>Отклик:</b> <u>{response["id"]}</u>\n' \

@@ -16,5 +16,5 @@ def close_bid(bid_id: int) -> bool | None:
                 else:
                     return False
             except Exception as e:
-                print(f'Error getting bids: {e}')
+                print(f'Error closing bid: {e}')
                 return None

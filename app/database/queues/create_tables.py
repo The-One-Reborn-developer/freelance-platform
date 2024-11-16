@@ -4,7 +4,7 @@ from app.database.models.bids import Bid, Response
 from app.database.models.sync_engine import sync_engine
 
 
-def create_tables() -> None:
+def create_tables() -> bool |None:
     """
     Creates all tables defined in the application's metadata.
 
@@ -17,5 +17,7 @@ def create_tables() -> None:
     with sync_engine.begin() as conn:
         try:
             Base.metadata.create_all(conn)
+            return True
         except Exception as e:
             print(f'Error creating tables: {e}')
+            return None

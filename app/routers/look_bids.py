@@ -7,12 +7,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
 from app.database.queues.get_bids_by_id import get_bids_by_id
-from app.database.queues.get_bid_by_id import get_bid_by_id
+from app.tasks.celery_app import get_bid_by_id_task
 from app.database.queues.get_user_by_id import get_user_by_id
-from app.database.queues.close_bid import close_bid
+from app.tasks.celery_app import close_bid_task
 from app.database.queues.get_responses_by_id import get_responses_by_id
 from app.database.queues.put_response import put_response
-from app.database.queues.get_all_performer_chats import get_all_performer_chats
+from app.tasks.celery_app import get_all_performer_chats_task
 
 from app.scripts.save_customer_chat_message import save_customer_chat_message
 from app.scripts.get_chat import get_chat
@@ -74,7 +74,7 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
     if callback.data.startswith('close_bid_'):
         bid_id = callback.data.split('_')[2]
         
-        bid_closed = close_bid(int(bid_id))
+        bid_closed = close_bid_task.delay(int(bid_id))
 
         if bid_closed:
             content = f'Заказ №{bid_id} закрыт как выполненный ✅'
@@ -143,23 +143,23 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
 
         performer_telegram_id = callback.data.split('_')[3]
 
-        chats = get_all_performer_chats(performer_telegram_id)
+        chats = get_all_performer_chats_task.delay(performer_telegram_id).get()
         
         if chats:
             for chat in chats:
                 bid_id = int(chat)
 
-                customer_telegram_id = get_bid_by_id(bid_id)[1]
-                customer_full_name = get_user_by_id(get_bid_by_id(bid_id)[1])[2]
-                city = get_bid_by_id(bid_id)[2]
-                description = get_bid_by_id(bid_id)[3]
-                deadline = get_bid_by_id(bid_id)[4]
-                instrument_provided = get_bid_by_id(bid_id)[5]
+                customer_telegram_id = get_bid_by_id_task.delay(bid_id).get()[1]
+                customer_full_name = get_user_by_id(get_bid_by_id_task.delay(bid_id).get()[1])[2]
+                city = get_bid_by_id_task.delay(bid_id).get()[2]
+                description = get_bid_by_id_task.delay(bid_id).get()[3]
+                deadline = get_bid_by_id_task.delay(bid_id).get()[4]
+                instrument_provided = get_bid_by_id_task.delay(bid_id).get()[5]
                 if instrument_provided == 1:
                     instrument_provided = 'Да'
                 else:
                     instrument_provided = 'Нет'
-                closed = get_bid_by_id(bid_id)[6]
+                closed = get_bid_by_id_task.delay(bid_id).get()[6]
                 if closed == 1:
                     closed = 'Выполнен'
                 else:

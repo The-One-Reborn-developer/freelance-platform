@@ -7,8 +7,8 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from app.database.queues.get_bids_by_city import get_bids_by_city
 from app.database.queues.get_user_by_id import get_user_by_id
 from app.database.queues.post_response import post_response
-from app.database.queues.get_all_customer_chats import get_all_customer_chats
-from app.database.queues.get_bid_by_id import get_bid_by_id
+from app.tasks.celery_app import get_all_customer_chats_task
+from app.tasks.celery_app import get_bid_by_id_task
 from app.database.queues.get_responses_by_id import get_responses_by_id
 
 from app.scripts.send_response import send_response
@@ -84,20 +84,20 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
 
         customer_telegram_id = callback.data.split('_')[3]
 
-        chats_ids = get_all_customer_chats(customer_telegram_id)
+        chats_ids = get_all_customer_chats_task.delay(customer_telegram_id).get()
         
         if chats_ids:
             for chat_id in chats_ids:
                 bid_id = int(chat_id)
-                city = get_bid_by_id(bid_id)[2]
-                description = get_bid_by_id(bid_id)[3]
-                deadline = get_bid_by_id(bid_id)[4]
-                instrument_provided = get_bid_by_id(bid_id)[5]
+                city = get_bid_by_id_task.delay(bid_id).get()[2]
+                description = get_bid_by_id_task.delay(bid_id).get()[3]
+                deadline = get_bid_by_id_task.delay(bid_id).get()[4]
+                instrument_provided = get_bid_by_id_task.delay(bid_id).get()[5]
                 if instrument_provided == 1:
                     instrument_provided = 'Да'
                 else:
                     instrument_provided = 'Нет'
-                closed = get_bid_by_id(bid_id)[6]
+                closed = get_bid_by_id_task.delay(bid_id).get()[6]
                 if closed == 1:
                     closed = 'Выполнен'
                 else:

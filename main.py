@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher
 
 from dotenv import load_dotenv, find_dotenv
 
-from app.database.queues.create_tables import create_tables
+from app.tasks.celery_app import create_tables_task
 
 from app.routers.start import start_router
 from app.routers.menu import menu_router
@@ -20,7 +20,7 @@ load_dotenv(find_dotenv())
 
 
 async def on_startup() -> None:
-    create_tables()
+    create_tables_task.delay()
 
     try:
         bot = Bot(os.getenv('TELEGRAM_BOT_TOKEN'))
