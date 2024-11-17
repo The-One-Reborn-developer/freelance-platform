@@ -10,7 +10,7 @@ from app.tasks.celery_app import get_bids_by_telegram_id_task
 from app.tasks.celery_app import get_bid_by_bid_id_task
 from app.tasks.celery_app import get_user_by_telegram_id_task
 from app.tasks.celery_app import close_bid_task
-from app.tasks.celery_app import get_responses_by_bid_id
+from app.tasks.celery_app import get_responses_by_bid_id_task
 from app.tasks.celery_app import put_response_task
 from app.tasks.celery_app import get_all_performer_chats_task
 
@@ -97,7 +97,7 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
 
         bid_id = callback.data.split('_')[2]
 
-        responses = get_responses_by_bid_id.delay(bid_id).get()
+        responses = get_responses_by_bid_id_task.delay(bid_id).get()
 
         if responses != [] and responses is not None:
             for response in responses:

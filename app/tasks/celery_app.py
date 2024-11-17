@@ -261,3 +261,7 @@ def put_user_task(telegram_id: int, **kwargs) -> None:
     put_user(telegram_id, **kwargs)
 
     logging.info(f'User {telegram_id} updated successfully')
+
+
+if __name__ == '__main__':
+    app.start()
