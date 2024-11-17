@@ -28,7 +28,7 @@ services:
       dockerfile: Dockerfile.celery
     restart: always
     volumes:
-      - ./database.db:/app/tasks/database.db
+      - ./database.db:/app/database.db
 
   flask:
     build:
