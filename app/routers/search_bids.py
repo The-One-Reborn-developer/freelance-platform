@@ -84,13 +84,13 @@ async def search_bids_city_handler(callback: CallbackQuery, state: FSMContext):
 @search_bids_router.callback_query(SearchBids.selection)
 async def search_bids_selection_handler(callback: CallbackQuery, state: FSMContext):
     if callback.data.startswith('look_customer_chats'):
-        await state.set_state(SearchBids.chat)
-
         customer_telegram_id = callback.data.split('_')[3]
 
         chats_ids = get_all_customer_chats_task.delay(customer_telegram_id).get()
         
         if chats_ids:
+            await state.set_state(SearchBids.chat)
+
             for chat_id in chats_ids:
                 bid_id = int(chat_id)
                 city = get_bid_by_bid_id_task.delay(bid_id).get()[2]
@@ -145,6 +145,10 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
                     content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
 
                     await callback.message.answer(content)
+        else:
+            content = 'У данного заказчика ещё нет переписок.'
+
+            await callback.message.answer(content)
     else:
         performer = get_user_by_telegram_id_task.delay(callback.from_user.id).get()
         

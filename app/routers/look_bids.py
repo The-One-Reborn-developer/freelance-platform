@@ -51,12 +51,12 @@ async def look_bids_callback_handler(callback: CallbackQuery, state: FSMContext)
                 bid['instrument_provided'] = 'Да'
             elif bid['instrument_provided'] == 0:
                 bid['instrument_provided'] = 'Нет'
-            
+
             content = f'<b>Номер заказа:</b> <u>{bid["id"]}</u>\n' \
-                      f'<b>Описание:</b> {bid["description"]}\n' \
-                      f'<b>Сроки выполнения работ:</b> <i>{bid["deadline"]}</i>\n' \
-                      f'<b>Предоставляет инструмент:</b> <i>{bid["instrument_provided"]}</i>'
-            
+                f'<b>Описание:</b> {bid["description"]}\n' \
+                f'<b>Сроки выполнения работ:</b> <i>{bid["deadline"]}</i>\n' \
+                f'<b>Предоставляет инструмент:</b> <i>{bid["instrument_provided"]}</i>'
+
             keyboard = InlineKeyboardMarkup(
                 inline_keyboard=[
                     [
@@ -77,20 +77,20 @@ async def look_bids_callback_handler(callback: CallbackQuery, state: FSMContext)
 async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext):
     if callback.data.startswith('close_bid_'):
         bid_id = callback.data.split('_')[2]
-        
+
         bid_closed = close_bid_task.delay(int(bid_id))
 
         if bid_closed:
             content = f'Заказ №{bid_id} закрыт как выполненный ✅'
-            
+
             await callback.message.answer(content)
         elif not bid_closed:
             content = f'Заказ №{bid_id} уже закрыт как выполненный или не найден.'
-            
+
             await callback.message.answer(content)
         else:
             content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
-            
+
             await callback.message.answer(content)
     elif callback.data.startswith('look_responses_'):
         await state.set_state(LookBids.performer_actions)
@@ -102,10 +102,10 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
         if responses != [] and responses is not None:
             for response in responses:
                 content = f'<b>Отклик на заказ №{bid_id}:</b> <u>{response["id"]}</u>\n' \
-                          f'<b>Имя исполнителя:</b> {response["performer_full_name"]}\n' \
-                          f'<b>Ставка:</b> {response["performer_rate"]}\n' \
-                          f'<b>Стаж работы в годах:</b> {response["performer_experience"]}'
-                
+                    f'<b>Имя исполнителя:</b> {response["performer_full_name"]}\n' \
+                    f'<b>Ставка:</b> {response["performer_rate"]}\n' \
+                    f'<b>Стаж работы в годах:</b> {response["performer_experience"]}'
+
                 keyboard = InlineKeyboardMarkup(
                     inline_keyboard=[
                         [
@@ -147,18 +147,19 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
 
         await callback.message.answer(content)
     elif callback.data.startswith('look_performer_chats_'):
-        await state.set_state(LookBids.chat)
-
         performer_telegram_id = callback.data.split('_')[3]
 
         chats = get_all_performer_chats_task.delay(performer_telegram_id).get()
-        
+
         if chats:
+            await state.set_state(LookBids.chat)
+
             for chat in chats:
                 bid_id = int(chat)
 
                 customer_telegram_id = get_bid_by_bid_id_task.delay(bid_id).get()[1]
-                customer_full_name = get_user_by_telegram_id_task.delay(get_bid_by_bid_id_task.delay(bid_id).get()[1]).get()[2]
+                customer_full_name = get_user_by_telegram_id_task.delay(
+                    get_bid_by_bid_id_task.delay(bid_id).get()[1]).get()[2]
                 city = get_bid_by_bid_id_task.delay(bid_id).get()[2]
                 description = get_bid_by_bid_id_task.delay(bid_id).get()[3]
                 deadline = get_bid_by_bid_id_task.delay(bid_id).get()[4]
@@ -174,23 +175,27 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
                     closed = 'Не выполнен'
 
                 content = f'<b>Заказ №:</b> <u>{bid_id}</u>\n' \
-                          f'<b>Имя заказчика:</b> {customer_full_name}\n' \
-                          f'<b>Город:</b> {city}\n' \
-                          f'<b>Описание:</b> {description}\n' \
-                          f'<b>Сроки выполнения работ:</b> <i>{deadline}</i>\n' \
-                          f'<b>Предоставляет инструмент:</b> <i>{instrument_provided}</i>\n' \
-                          f'<b>Статус заказа:</b> {closed}'
-                
+                    f'<b>Имя заказчика:</b> {customer_full_name}\n' \
+                    f'<b>Город:</b> {city}\n' \
+                    f'<b>Описание:</b> {description}\n' \
+                    f'<b>Сроки выполнения работ:</b> <i>{deadline}</i>\n' \
+                    f'<b>Предоставляет инструмент:</b> <i>{instrument_provided}</i>\n' \
+                    f'<b>Статус заказа:</b> {closed}'
+
                 keyboard = InlineKeyboardMarkup(
                     inline_keyboard=[
                         [
                             InlineKeyboardButton(text='Смотреть переписку этого заказа 📨',
-                                                    callback_data=f'look_performer_chat_{bid_id}_{customer_telegram_id}_{performer_telegram_id}')
+                                                 callback_data=f'look_performer_chat_{bid_id}_{customer_telegram_id}_{performer_telegram_id}')
                         ]
                     ]
                 )
-                
+
                 await callback.message.answer(content, parse_mode='HTML', reply_markup=keyboard)
+        else:
+            content = 'У данного подрядчика ещё нет переписок.'
+
+            await callback.message.answer(content)
 
 
 @look_bids_router.message(LookBids.message)
@@ -210,7 +215,6 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
     performer_telegram_id = data['performer_telegram_id']
     performer_full_name = get_user_by_telegram_id_task.delay(performer_telegram_id).get()[2]
 
-
     if message.video:
         message_content = f'Сообщение от заказчика {customer_full_name}:\n\n{message.caption}'
 
@@ -221,7 +225,7 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
                                    performer_full_name,
                                    message.caption,
                                    message.video.file_id)
-        
+
         await message.bot.send_video(chat_id=performer_chat_id,
                                      video=message.video.file_id,
                                      caption=message_content)
@@ -235,10 +239,10 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
                                    performer_full_name,
                                    message.text,
                                    None)
-        
+
         await message.bot.send_message(chat_id=performer_chat_id,
                                        text=message_content)
-    
+
     content = 'Сообщение отправлено!'
 
     await state.clear()
@@ -256,7 +260,7 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
         response = get_chat(bid_id,
                             customer_telegram_id,
                             performer_telegram_id)
-        
+
         if response:
             messages = [msg.strip() for msg in response.split("---") if msg.strip()]
             for message in messages:
@@ -270,9 +274,9 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
                             video_file_id = line.split(":", 1)[1].strip()
                         else:
                             text_lines.append(line.strip())
-                    
+
                     caption = "\n".join(text_lines)
-                    
+
                     await callback.message.answer_video(video=video_file_id, caption=caption)
                 else:
                     await callback.message.answer(message)

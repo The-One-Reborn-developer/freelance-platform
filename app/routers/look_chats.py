@@ -28,7 +28,10 @@ async def look_chats_handler(callback: CallbackQuery):
             bid_closed = get_bid_by_bid_id_task.delay(response["bid_id"]).get()[6]
             
             if bid_closed:
-                continue
+                content = f'По активным заказам переписок нет.\n' \
+                          f'Если у Вас была переписка с заказчиком, то это значит, что он закрыл заказ.'
+                
+                await callback.message.answer(content, reply_markup=performer_menu_keyboard())
             else:
                 customer_telegram_id = get_bid_by_bid_id_task.delay(response["bid_id"]).get()[1]
                 customer_full_name = get_user_by_telegram_id_task.delay(customer_telegram_id).get()[2]
