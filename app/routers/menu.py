@@ -23,8 +23,8 @@ async def menu_callback_handler(callback: CallbackQuery):
         elif user[3]:
             keyboard = performer_menu_keyboard()
 
-        #await callback.message.answer(content, reply_markup=keyboard) # TODO: REPLACE BACK TO SEPARATE KEYBOARDS AFTER DEVELOPMENT
-        await callback.message.answer(content, reply_markup=both_menu_keyboard())
+        await callback.message.answer(content, reply_markup=keyboard) # TODO: REPLACE BACK TO SEPARATE KEYBOARDS AFTER DEVELOPMENT
+        #await callback.message.answer(content, reply_markup=both_menu_keyboard())
     else:
         content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
 
