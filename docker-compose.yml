@@ -1,0 +1,48 @@
+services:
+  redis:
+    image: redis:7.0.15
+    restart: always
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    restart: always
+    environment:
+      TOKEN: ${TELEGRAM_BOT_TOKEN}
+      DATABASE_URL: ${DATABASE_URL}
+    volumes:  
+      - ./app/chats:/app/app/chats
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile.celery
+    restart: always
+    volumes:
+      - ./database.db:/app/tasks/database.db
+
+  flask:
+    build:
+      context: .
+      dockerfile: Dockerfile.flask
+    restart: always
+    expose:
+      - "5000"
+
+  nginx:
+    image: nginx:1.24.0
+    container_name: nginx
+    ports:
+      - "8087:8087"
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - flask
