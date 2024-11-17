@@ -4,7 +4,7 @@ from app.database.models.bids import Bid
 from app.database.models.sync_session import sync_session
 
 
-def get_bid_by_id(bid_id: int) -> list | None:
+def get_bid_by_bid_id(bid_id: int) -> list | None:
     with sync_session() as session:
         with session.begin():
             try:
@@ -21,7 +21,7 @@ def get_bid_by_id(bid_id: int) -> list | None:
                         bid.closed
                     ]
                 else:
-                    return None
+                    return []
             except Exception as e:
                 print(f'Error getting bids: {e}')
                 return None

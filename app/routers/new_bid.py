@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
-from app.database.queues.post_bid import post_bid
+from app.tasks.celery_app import post_bid_task
 
 from app.keyboards.cities import cities_keyboard
 from app.keyboards.menu import customer_menu_keyboard
@@ -70,11 +70,11 @@ async def new_bid_description_handler(callback: CallbackQuery, state: FSMContext
     elif data['instrument_provided'] == 'no':
         data['instrument_provided'] = 0
 
-    new_bid = post_bid(customer_telegram_id=callback.from_user.id,
-             city=data['city'],
-             description=data['description'],
-             deadline=data['deadline'],
-             instrument_provided=data['instrument_provided'])
+    new_bid = post_bid_task.delay(customer_telegram_id=callback.from_user.id,
+                                  city=data['city'],
+                                  description=data['description'],
+                                  deadline=data['deadline'],
+                                  instrument_provided=data['instrument_provided']).get()
     
     if new_bid == False:
         content = 'Такая заявка уже существует!'

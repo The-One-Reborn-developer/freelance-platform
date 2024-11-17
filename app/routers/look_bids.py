@@ -6,12 +6,12 @@ from aiogram.types import (Message,
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
-from app.database.queues.get_bids_by_id import get_bids_by_id
-from app.tasks.celery_app import get_bid_by_id_task
-from app.database.queues.get_user_by_id import get_user_by_id
+from app.tasks.celery_app import get_bids_by_telegram_id_task
+from app.tasks.celery_app import get_bid_by_bid_id_task
+from app.tasks.celery_app import get_user_by_telegram_id_task
 from app.tasks.celery_app import close_bid_task
-from app.database.queues.get_responses_by_id import get_responses_by_id
-from app.database.queues.put_response import put_response
+from app.tasks.celery_app import get_responses_by_bid_id
+from app.tasks.celery_app import put_response_task
 from app.tasks.celery_app import get_all_performer_chats_task
 
 from app.scripts.save_customer_chat_message import save_customer_chat_message
@@ -35,9 +35,17 @@ async def look_bids_callback_handler(callback: CallbackQuery, state: FSMContext)
     await state.clear()
     await state.set_state(LookBids.selection)
 
-    bids = get_bids_by_id(callback.from_user.id)
+    bids = get_bids_by_telegram_id_task.delay(callback.from_user.id).get()
 
-    if bids:
+    if bids == []:
+        content = 'На данный момент у Вас нет активных заказов 🙂'
+
+        await callback.message.answer(content)
+    elif bids == None:
+        content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
+
+        await callback.message.answer(content)
+    else:
         for bid in bids:
             if bid['instrument_provided'] == 1:
                 bid['instrument_provided'] = 'Да'
@@ -63,10 +71,6 @@ async def look_bids_callback_handler(callback: CallbackQuery, state: FSMContext)
             )
 
             await callback.message.answer(content, parse_mode='HTML', reply_markup=keyboard)
-    else:
-        content = 'На данный момент у Вас нет активных заказов 🙂'
-
-        await callback.message.answer(content)
 
 
 @look_bids_router.callback_query(LookBids.selection)
@@ -93,9 +97,9 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
 
         bid_id = callback.data.split('_')[2]
 
-        responses = get_responses_by_id(bid_id)
+        responses = get_responses_by_bid_id.delay(bid_id).get()
 
-        if responses:
+        if responses != [] and responses is not None:
             for response in responses:
                 content = f'<b>Отклик на заказ №{bid_id}:</b> <u>{response["id"]}</u>\n' \
                           f'<b>Имя исполнителя:</b> {response["performer_full_name"]}\n' \
@@ -116,8 +120,12 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
                 )
 
                 await callback.message.answer(content, parse_mode='HTML', reply_markup=keyboard)
-        else:
+        elif responses == []:
             content = 'На данный момент у заказа нет откликов 🙂'
+
+            await callback.message.answer(content)
+        else:
+            content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
 
             await callback.message.answer(content)
 
@@ -126,7 +134,7 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
 async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: FSMContext):
     if callback.data.startswith('write_to_performer_'):
         performer_telegram_id = callback.data.split('_')[3]
-        performer_chat_id = get_user_by_id(performer_telegram_id)[7]
+        performer_chat_id = get_user_by_telegram_id_task.delay(performer_telegram_id).get()[7]
 
         bid_id = callback.data.split('_')[4]
 
@@ -149,17 +157,17 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
             for chat in chats:
                 bid_id = int(chat)
 
-                customer_telegram_id = get_bid_by_id_task.delay(bid_id).get()[1]
-                customer_full_name = get_user_by_id(get_bid_by_id_task.delay(bid_id).get()[1])[2]
-                city = get_bid_by_id_task.delay(bid_id).get()[2]
-                description = get_bid_by_id_task.delay(bid_id).get()[3]
-                deadline = get_bid_by_id_task.delay(bid_id).get()[4]
-                instrument_provided = get_bid_by_id_task.delay(bid_id).get()[5]
+                customer_telegram_id = get_bid_by_bid_id_task.delay(bid_id).get()[1]
+                customer_full_name = get_user_by_telegram_id_task.delay(get_bid_by_bid_id_task.delay(bid_id).get()[1]).get()[2]
+                city = get_bid_by_bid_id_task.delay(bid_id).get()[2]
+                description = get_bid_by_bid_id_task.delay(bid_id).get()[3]
+                deadline = get_bid_by_bid_id_task.delay(bid_id).get()[4]
+                instrument_provided = get_bid_by_bid_id_task.delay(bid_id).get()[5]
                 if instrument_provided == 1:
                     instrument_provided = 'Да'
                 else:
                     instrument_provided = 'Нет'
-                closed = get_bid_by_id_task.delay(bid_id).get()[6]
+                closed = get_bid_by_bid_id_task.delay(bid_id).get()[6]
                 if closed == 1:
                     closed = 'Выполнен'
                 else:
@@ -190,17 +198,17 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
     data = await state.get_data()
 
     performer_chat_id = data['performer_chat_id']
-    customer_full_name = get_user_by_id(message.from_user.id)[2]
+    customer_full_name = get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]
 
     bid_id = data['bid_id']
 
-    put_response(bid_id=bid_id,
-                 performer_telegram_id=data['performer_telegram_id'],
-                 chat_started=True)
+    put_response_task.delay(bid_id=bid_id,
+                            performer_telegram_id=data['performer_telegram_id'],
+                            chat_started=True)
 
-    customer_telegram_id = get_user_by_id(message.from_user.id)[1]
+    customer_telegram_id = get_user_by_telegram_id_task.delay(message.from_user.id).get()[1]
     performer_telegram_id = data['performer_telegram_id']
-    performer_full_name = get_user_by_id(performer_telegram_id)[2]
+    performer_full_name = get_user_by_telegram_id_task.delay(performer_telegram_id).get()[2]
 
 
     if message.video:

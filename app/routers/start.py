@@ -4,9 +4,9 @@ from aiogram.filters.command import CommandStart
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
-from app.database.queues.post_user import post_user
-from app.database.queues.put_user import put_user
-from app.database.queues.get_user_by_id import get_user_by_id
+from app.tasks.celery_app import post_user_task
+from app.tasks.celery_app import put_user_task
+from app.tasks.celery_app import get_user_by_telegram_id_task
 
 from app.keyboards.start import start_keyboard
 from app.keyboards.menu import (performer_menu_keyboard,
@@ -30,9 +30,9 @@ class CustomerRegistration(StatesGroup):
 async def start_command_handler(message: Message, state: FSMContext):
     await state.clear()
 
-    user = get_user_by_id(message.from_user.id)
+    user = get_user_by_telegram_id_task.delay(message.from_user.id).get()
 
-    if user:
+    if user != [] and user is not None:
         content = 'Вы уже зарегистрированы в боте!\n\n' \
                   'Выберите опцию ⏬'
 
@@ -42,13 +42,17 @@ async def start_command_handler(message: Message, state: FSMContext):
             keyboard = customer_menu_keyboard()
 
         await message.answer(content, reply_markup=keyboard)
-    else:
-        post_user(message.from_user.id)
+    elif user == []:
+        post_user_task.delay(message.from_user.id)
 
         content = 'Здравствуйте! Добро пожаловать в бота для поиска заказчиков/подрядчиков.\n\n' \
                   'Пожалуйста, укажите, кто Вы ⏬'
 
         await message.answer(content, reply_markup=start_keyboard())
+    else:
+        content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
+
+        await message.answer(content)
 
 
 @start_router.callback_query(F.data == 'customer')
@@ -66,10 +70,10 @@ async def customer_registration_name_handler(message: Message, state: FSMContext
     await state.update_data(name=message.text)
 
     data = await state.get_data()
-    put_user(telegram_id=message.from_user.id,
-             full_name=data['name'],
-             is_customer=True,
-             chat_id=message.chat.id)
+    put_user_task.delay(telegram_id=message.from_user.id,
+                        full_name=data['name'],
+                        is_customer=True,
+                        chat_id=message.chat.id)
 
     content = 'Вы успешно зарегистрированы как заказчик!\n\n' \
               'Выберите опцию ⏬'
@@ -133,12 +137,12 @@ async def performer_registration_experience_handler(message: Message, state: FSM
 
     data = await state.get_data()
 
-    put_user(telegram_id=message.from_user.id,
-             full_name=data['name'],
-             is_performer=True,
-             rate=float(data['rate']),
-             experience=int(data['experience']),
-             chat_id=message.chat.id)
+    put_user_task.delay(telegram_id=message.from_user.id,
+                        full_name=data['name'],
+                        is_performer=True,
+                        rate=float(data['rate']),
+                        experience=int(data['experience']),
+                        chat_id=message.chat.id)
 
     content = 'Вы успешно зарегистрированы как исполнитель!\n\n' \
               'Выберите опцию ⏬'

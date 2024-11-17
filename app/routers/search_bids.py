@@ -4,12 +4,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from app.database.queues.get_bids_by_city import get_bids_by_city
-from app.database.queues.get_user_by_id import get_user_by_id
-from app.database.queues.post_response import post_response
+from app.tasks.celery_app import get_bids_by_city_task
+from app.tasks.celery_app import get_user_by_telegram_id_task
+from app.tasks.celery_app import post_response_task
 from app.tasks.celery_app import get_all_customer_chats_task
-from app.tasks.celery_app import get_bid_by_id_task
-from app.database.queues.get_responses_by_id import get_responses_by_id
+from app.tasks.celery_app import get_bid_by_bid_id_task
+from app.tasks.celery_app import get_responses_by_bid_id_task
 
 from app.scripts.send_response import send_response
 from app.scripts.get_chat import get_chat
@@ -37,11 +37,11 @@ async def search_bids_callback_handler(callback: CallbackQuery, state: FSMContex
 
 @search_bids_router.callback_query(SearchBids.city)
 async def search_bids_city_handler(callback: CallbackQuery, state: FSMContext):
-    bids = get_bids_by_city(callback.data)
+    bids = get_bids_by_city_task.delay(callback.data).get()
 
-    if bids:
+    if bids != []:
         for bid in bids:
-            customer = get_user_by_id(bid['customer_telegram_id'])
+            customer = get_user_by_telegram_id_task.delay(bid['customer_telegram_id']).get()
             customer_full_name = customer[2]
 
             if bid['instrument_provided'] == 1:
@@ -71,8 +71,12 @@ async def search_bids_city_handler(callback: CallbackQuery, state: FSMContext):
             )
 
             await callback.message.answer(content, parse_mode='HTML', reply_markup=keyboard)
-    else:
+    elif bids == []:
         content = 'На данный момент нет свободных заказов 🙁'
+
+        await callback.message.answer(content)
+    else:
+        content = 'Что-то пошло не так, попробуйте ещё раз.'
 
         await callback.message.answer(content)
 
@@ -89,15 +93,15 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
         if chats_ids:
             for chat_id in chats_ids:
                 bid_id = int(chat_id)
-                city = get_bid_by_id_task.delay(bid_id).get()[2]
-                description = get_bid_by_id_task.delay(bid_id).get()[3]
-                deadline = get_bid_by_id_task.delay(bid_id).get()[4]
-                instrument_provided = get_bid_by_id_task.delay(bid_id).get()[5]
+                city = get_bid_by_bid_id_task.delay(bid_id).get()[2]
+                description = get_bid_by_bid_id_task.delay(bid_id).get()[3]
+                deadline = get_bid_by_bid_id_task.delay(bid_id).get()[4]
+                instrument_provided = get_bid_by_bid_id_task.delay(bid_id).get()[5]
                 if instrument_provided == 1:
                     instrument_provided = 'Да'
                 else:
                     instrument_provided = 'Нет'
-                closed = get_bid_by_id_task.delay(bid_id).get()[6]
+                closed = get_bid_by_bid_id_task.delay(bid_id).get()[6]
                 if closed == 1:
                     closed = 'Выполнен'
                 else:
@@ -110,9 +114,9 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
                           f'<b>Предоставляет инструмент:</b> <i>{instrument_provided}</i>\n' \
                           f'<b>Статус:</b> <i>{closed}</i>\n\n' \
 
-                responses = get_responses_by_id(bid_id)
+                responses = get_responses_by_bid_id_task.delay(bid_id).get()
 
-                if responses:
+                if responses != [] and responses is not None:
                     for response in responses:
                         performer_telegram_id = response['performer_telegram_id']
                         performer_full_name = response['performer_full_name']
@@ -133,28 +137,41 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
                         )
                         
                         await callback.message.answer(content, parse_mode='HTML', reply_markup=keyboard)
+                elif responses == []:
+                    content = 'На данный заказ ещё нет откликов 🙁'
+
+                    await callback.message.answer(content)
+                else:
+                    content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
+
+                    await callback.message.answer(content)
     else:
-        performer = get_user_by_id(callback.from_user.id)
+        performer = get_user_by_telegram_id_task.delay(callback.from_user.id).get()
+        
+        if performer != [] and performer is not None:
+            response = post_response_task.delay(callback.data,
+                                                performer[1],
+                                                performer[2],
+                                                performer[5],
+                                                performer[6]).get()
 
-        response = post_response(callback.data,
-                                performer[1],
-                                performer[2],
-                                performer[5],
-                                performer[6])
+            if response == False:
+                content = 'Вы уже откликнулись на данный заказ!'
 
-        if response == False:
-            content = 'Вы уже откликнулись на данный заказ!'
+                await callback.message.answer(content)
+            elif response == None:
+                content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
 
-            await callback.message.answer(content)
-        elif response == None:
-            content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
+                await callback.message.answer(content)
+            else:
+                send_response(callback.data)
 
-            await callback.message.answer(content)
+                content = f'Вы успешно откликнулись на заказ №{callback.data}!\n' \
+                    'Заказчик получит уведомление о Вашем отклике.'
+
+                await callback.message.answer(content)
         else:
-            send_response(callback.data)
-
-            content = f'Вы успешно откликнулись на заказ №{callback.data}!\n' \
-                'Заказчик получит уведомление о Вашем отклике.'
+            content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
 
             await callback.message.answer(content)
 

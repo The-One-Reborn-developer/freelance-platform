@@ -4,7 +4,7 @@ from app.database.models.users import User
 from app.database.models.sync_session import sync_session
 
 
-def get_user_by_id(telegram_id: int) -> User | None:
+def get_user_by_telegram_id(telegram_id: int) -> User | list | None:
     """
     Gets a user by telegram_id from the database.
 
@@ -31,6 +31,7 @@ def get_user_by_id(telegram_id: int) -> User | None:
                         user.chat_id
                     ]
                 else:
-                    return None
+                    return []
             except Exception as e:
                 print(f'Error getting user: {e}')
+                return None

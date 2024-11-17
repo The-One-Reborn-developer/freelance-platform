@@ -4,12 +4,11 @@ from app.database.models.bids import Response
 from app.database.models.sync_session import sync_session
 
 
-def get_responses_by_performer_telegram_id(performer_telegram_id: int) -> list[dict] | None:
+def get_responses_by_bid_id(bid_id: int) -> list[dict] | None:
     with sync_session() as session:
         with session.begin():
             try:
-                responses = session.scalars(select(Response).where(Response.performer_telegram_id == performer_telegram_id,
-                                                                   Response.chat_started == True)).all()
+                responses = session.scalars(select(Response).where(Response.bid_id == bid_id)).all()
 
                 if responses:
                     return [

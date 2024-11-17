@@ -3,9 +3,9 @@ from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMar
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
-from app.database.queues.get_responses_by_performer_telegram_id import get_responses_by_performer_telegram_id
-from app.tasks.celery_app import get_bid_by_id_task
-from app.database.queues.get_user_by_id import get_user_by_id
+from app.tasks.celery_app import get_responses_by_performer_telegram_id_task
+from app.tasks.celery_app import get_bid_by_bid_id_task
+from app.tasks.celery_app import get_user_by_telegram_id_task
 
 from app.scripts.save_performer_chat_message import save_performer_chat_message
 
@@ -21,17 +21,17 @@ class LookChats(StatesGroup):
 
 @look_chats_router.callback_query(F.data == 'look_chats')
 async def look_chats_handler(callback: CallbackQuery):
-    responses = get_responses_by_performer_telegram_id(callback.from_user.id)
+    responses = get_responses_by_performer_telegram_id_task.delay(callback.from_user.id).get()
 
-    if responses:
+    if responses != [] and responses is not None:
         for response in responses:
-            bid_closed = get_bid_by_id_task.delay(response["bid_id"]).get()[6]
+            bid_closed = get_bid_by_bid_id_task.delay(response["bid_id"]).get()[6]
             
             if bid_closed:
                 continue
             else:
-                customer_telegram_id = get_bid_by_id_task.delay(response["bid_id"]).get()[1]
-                customer_full_name = get_user_by_id(customer_telegram_id)[2]
+                customer_telegram_id = get_bid_by_bid_id_task.delay(response["bid_id"]).get()[1]
+                customer_full_name = get_user_by_telegram_id_task.delay(customer_telegram_id).get()[2]
 
                 content = f'<b>Отклик:</b> <u>{response["id"]}</u>\n' \
                           f'<b>Номер заказа:</b> <i>{response["bid_id"]}</i>\n' \
@@ -47,9 +47,13 @@ async def look_chats_handler(callback: CallbackQuery):
                 )
                 
                 await callback.message.answer(content, reply_markup=keyboard, parse_mode='HTML')
-    else:
+    elif responses == []:
         content = 'Вам ещё не писал заказчик.\n' \
                   'Как только какой-либо заказчик напишет Вам, вы сможете увидеть его здесь.'
+
+        await callback.message.answer(content, reply_markup=performer_menu_keyboard())
+    else:
+        content = 'Произошла ошибка 🙁\nПопробейте ещё раз или обратитесь в поддержку.'
 
         await callback.message.answer(content, reply_markup=performer_menu_keyboard())
 
@@ -72,8 +76,8 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
     customer_telegram_id = data['customer_telegram_id']
     performer_telegram_id = message.from_user.id
     bid_id = data['bid_id']
-    customer_full_name = get_user_by_id(customer_telegram_id)[2]
-    performer_full_name = get_user_by_id(performer_telegram_id)[2]
+    customer_full_name = get_user_by_telegram_id_task.delay(customer_telegram_id).get()[2]
+    performer_full_name = get_user_by_telegram_id_task.delay(performer_telegram_id).get()[2]
     
     if message.video:
         save_performer_chat_message(bid_id,
@@ -84,7 +88,7 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
                                     message.caption,
                                     message.video.file_id)
         
-        message_content = f'Сообщение от подрядчика {get_user_by_id(message.from_user.id)[2]}:\n\n{message.caption}'
+        message_content = f'Сообщение от подрядчика {get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}:\n\n{message.caption}'
 
         await message.bot.send_video(chat_id=customer_telegram_id,
                                      video=message.video.file_id,
@@ -98,7 +102,7 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
                                     message.text,
                                     None)
         
-        message_content = f'Сообщение от подрядчика {get_user_by_id(message.from_user.id)[2]}:\n\n{message.text}'
+        message_content = f'Сообщение от подрядчика {get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}:\n\n{message.text}'
 
         await message.bot.send_message(chat_id=customer_telegram_id,
                                        text=message_content)
