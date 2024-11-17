@@ -5,7 +5,7 @@ from app.tasks.celery_app import get_user_by_telegram_id_task
 
 
 def send_response(bid_id: int):
-    url = 'http://127.0.0.1:5000/response'
+    url = 'http://flask:5000/response'
 
     customer_telegram_id = get_bid_by_bid_id_task.delay(bid_id).get()[1]
     customer_chat_id = get_user_by_telegram_id_task.delay(customer_telegram_id).get()[7]
