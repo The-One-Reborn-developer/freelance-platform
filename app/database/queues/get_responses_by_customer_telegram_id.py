@@ -3,14 +3,14 @@ from sqlalchemy import select
 from app.database.models.bids import Response
 from app.database.models.sync_session import sync_session
 
-from app.tasks.celery_app import get_bids_by_telegram_id_task
+from app.database.queues.get_bids_by_telegram_id import get_bids_by_telegram_id
 
 
 def get_responses_by_customer_telegram_id(customer_telegram_id: int) -> list[dict] | None:
     with sync_session() as session:
         with session.begin():
             try:
-                bids = get_bids_by_telegram_id_task.delay(customer_telegram_id).get()
+                bids = get_bids_by_telegram_id(customer_telegram_id)
 
                 if bids:
                     all_responses = []
