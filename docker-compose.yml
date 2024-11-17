@@ -20,6 +20,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
     volumes:  
       - ./app/chats:/app/app/chats
+      - ./app/temp:/app/app/temp
 
   celery:
     build:
