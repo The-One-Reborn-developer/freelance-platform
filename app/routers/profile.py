@@ -86,7 +86,6 @@ async def profile_performer_experience_change_handler(message: Message, state: F
     
     data = await state.get_data()
     put_user_task.delay(telegram_id=message.from_user.id,
-                        full_name=data['name'],
                         rate=float(data['rate']),
                         experience=int(data['experience']))
     
