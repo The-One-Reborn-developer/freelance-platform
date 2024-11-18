@@ -93,19 +93,13 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
 
             for chat_id in chats_ids:
                 bid_id = int(chat_id)
-                city = get_bid_by_bid_id_task.delay(bid_id).get()[2]
-                description = get_bid_by_bid_id_task.delay(bid_id).get()[3]
-                deadline = get_bid_by_bid_id_task.delay(bid_id).get()[4]
-                instrument_provided = get_bid_by_bid_id_task.delay(bid_id).get()[5]
-                if instrument_provided == 1:
-                    instrument_provided = 'Да'
-                else:
-                    instrument_provided = 'Нет'
-                closed = get_bid_by_bid_id_task.delay(bid_id).get()[6]
-                if closed == 1:
-                    closed = 'Выполнен'
-                else:
-                    closed = 'Не выполнен'
+                # Fetch bid details only once
+                bid_data = get_bid_by_bid_id_task.delay(bid_id).get()
+                city = bid_data[2]
+                description = bid_data[3]
+                deadline = bid_data[4]
+                instrument_provided = 'Да' if bid_data[5] == 1 else 'Нет'
+                closed = 'Выполнен' if bid_data[6] == 1 else 'Не выполнен'
 
                 responses = get_responses_by_bid_id_task.delay(bid_id).get()
 
@@ -137,8 +131,13 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
                         
                         await callback.message.answer(content, parse_mode='HTML', reply_markup=keyboard)
                 elif responses == []:
-                    content = 'На данный заказ ещё нет откликов 🙁'
-
+                    content = f'<b>Номер заказа:</b> <u>{bid_id}</u>\n' \
+                      f'<b>Город:</b> <i>{city}</i>\n' \
+                      f'<b>Описание:</b> {description}\n' \
+                      f'<b>Сроки выполнения работы:</b> <i>{deadline}</i>\n' \
+                      f'<b>Предоставляет инструмент:</b> <i>{instrument_provided}</i>\n' \
+                      f'<b>Статус:</b> <i>{closed}</i>\n\n' \
+                      'На данный заказ ещё нет откликов 🙁'
                     await callback.message.answer(content)
                 else:
                     content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
