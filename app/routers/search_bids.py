@@ -208,8 +208,8 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
                     
                     caption = "\n".join(text_lines)
                     
-                    await callback.message.answer_video(video=video_file_id, caption=caption)
+                    await callback.message.answer_video(video=video_file_id, caption=caption, parse_mode='HTML')
                 else:
-                    await callback.message.answer(message)
+                    await callback.message.answer(message, parse_mode='HTML')
         else:
             await callback.message.answer("Чат пока пуст или произошла ошибка.")

@@ -92,7 +92,8 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
 
         await message.bot.send_video(chat_id=customer_telegram_id,
                                      video=message.video.file_id,
-                                     caption=message_content)
+                                     caption=message_content,
+                                     parse_mode='HTML')
     else:    
         save_performer_chat_message(bid_id,
                                     customer_telegram_id,
@@ -105,7 +106,8 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
         message_content = f'Сообщение от мастера {get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}:\n\n{message.text}'
 
         await message.bot.send_message(chat_id=customer_telegram_id,
-                                       text=message_content)
+                                       text=message_content,
+                                       parse_mode='HTML')
         
     content = 'Сообщение отправлено!'
 

@@ -17,7 +17,7 @@ def save_performer_chat_message(bid_id: int,
     separator = "\n---\n"
 
     if video_file_id:
-        formatted_message = f"Сообщение от мастера {performer_full_name} заказчику {customer_full_name}:\n\n{message}\nvideo_file_id:{video_file_id}{separator}"
+        formatted_message = f"Сообщение от мастера {performer_full_name} заказчику {customer_full_name}:\n\n<u>{message}</u>\nvideo_file_id:{video_file_id}{separator}"
     else:
         formatted_message = f"Сообщение от мастера {performer_full_name} заказчику {customer_full_name}:\n\n{message}{separator}"    
 
