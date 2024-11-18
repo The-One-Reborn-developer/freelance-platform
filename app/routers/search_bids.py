@@ -107,13 +107,6 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
                 else:
                     closed = 'Не выполнен'
 
-                content = f'<b>Номер заказа:</b> <u>{bid_id}</u>\n' \
-                          f'<b>Город:</b> <i>{city}</i>\n' \
-                          f'<b>Описание:</b> {description}\n' \
-                          f'<b>Сроки выполнения работы:</b> <i>{deadline}</i>\n' \
-                          f'<b>Предоставляет инструмент:</b> <i>{instrument_provided}</i>\n' \
-                          f'<b>Статус:</b> <i>{closed}</i>\n\n' \
-
                 responses = get_responses_by_bid_id_task.delay(bid_id).get()
 
                 if responses != [] and responses is not None:
@@ -123,9 +116,15 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
                         performer_rate = response['performer_rate']
                         performer_experience = response['performer_experience']
 
-                        content += f'<b>Откликнулся:</b> <i>{performer_full_name}</i>\n' \
-                                   f'<b>Ставка:</b> <i>{performer_rate}</i>\n' \
-                                   f'<b>Стаж:</b> <i>{performer_experience}</i>'
+                        content = f'<b>Номер заказа:</b> <u>{bid_id}</u>\n' \
+                          f'<b>Город:</b> <i>{city}</i>\n' \
+                          f'<b>Описание:</b> {description}\n' \
+                          f'<b>Сроки выполнения работы:</b> <i>{deadline}</i>\n' \
+                          f'<b>Предоставляет инструмент:</b> <i>{instrument_provided}</i>\n' \
+                          f'<b>Статус:</b> <i>{closed}</i>\n\n' \
+                          f'<b>Откликнулся:</b> <i>{performer_full_name}</i>\n' \
+                          f'<b>Ставка:</b> <i>{performer_rate}</i>\n' \
+                          f'<b>Стаж:</b> <i>{performer_experience}</i>'
 
                         keyboard = InlineKeyboardMarkup(
                             inline_keyboard=[
