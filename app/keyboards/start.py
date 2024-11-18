@@ -12,7 +12,7 @@ def start_keyboard() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text='Подрядчик 👷',
+                    text='Мастер 👷',
                     callback_data='performer'
                 )
             ]

@@ -17,9 +17,9 @@ def save_customer_chat_message(bid_id: int,
     separator = "\n---\n"
     
     if video_file_id:
-        formatted_message = f"Сообщение от заказчика {customer_full_name} подрядчику {performer_full_name}:\n\n{message}\nvideo_file_id:{video_file_id}{separator}"
+        formatted_message = f"Сообщение от заказчика {customer_full_name} мастеру {performer_full_name}:\n\n{message}\nvideo_file_id:{video_file_id}{separator}"
     else:
-        formatted_message = f"Сообщение от заказчика {customer_full_name} подрядчику {performer_full_name}:\n\n{message}{separator}"
+        formatted_message = f"Сообщение от заказчика {customer_full_name} мастеру {performer_full_name}:\n\n{message}{separator}"
 
     with open(file_path, "a", encoding="utf-8") as file:
         file.write(formatted_message)

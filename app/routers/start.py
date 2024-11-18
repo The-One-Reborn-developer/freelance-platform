@@ -44,7 +44,7 @@ async def start_command_handler(message: Message, state: FSMContext):
     elif user == []:
         post_user_task.delay(message.from_user.id)
 
-        content = 'Здравствуйте! Добро пожаловать в бота для поиска заказчиков/подрядчиков.\n\n' \
+        content = 'Здравствуйте! Добро пожаловать в бота для поиска заказчиков/мастеров.\n\n' \
                   'Пожалуйста, укажите, кто Вы ⏬'
 
         await message.answer(content, reply_markup=start_keyboard())

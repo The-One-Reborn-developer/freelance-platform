@@ -88,7 +88,7 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
                                     message.caption,
                                     message.video.file_id)
         
-        message_content = f'Сообщение от подрядчика {get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}:\n\n{message.caption}'
+        message_content = f'Сообщение от мастера {get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}:\n\n{message.caption}'
 
         await message.bot.send_video(chat_id=customer_telegram_id,
                                      video=message.video.file_id,
@@ -102,7 +102,7 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
                                     message.text,
                                     None)
         
-        message_content = f'Сообщение от подрядчика {get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}:\n\n{message.text}'
+        message_content = f'Сообщение от мастера {get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}:\n\n{message.text}'
 
         await message.bot.send_message(chat_id=customer_telegram_id,
                                        text=message_content)

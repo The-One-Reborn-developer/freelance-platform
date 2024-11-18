@@ -109,11 +109,11 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
                 keyboard = InlineKeyboardMarkup(
                     inline_keyboard=[
                         [
-                            InlineKeyboardButton(text='Написать подрядчику ✉️',
+                            InlineKeyboardButton(text='Написать мастеру ✉️',
                                                  callback_data=f'write_to_performer_{response["performer_telegram_id"]}_{bid_id}'),
                         ],
                         [
-                            InlineKeyboardButton(text='Посмотреть переписки подрядчика 📨',
+                            InlineKeyboardButton(text='Посмотреть переписки мастера 📨',
                                                  callback_data=f'look_performer_chats_{response["performer_telegram_id"]}')
                         ]
                     ]
@@ -193,7 +193,7 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
 
                 await callback.message.answer(content, parse_mode='HTML', reply_markup=keyboard)
         else:
-            content = 'У данного подрядчика ещё нет переписок.'
+            content = 'У данного мастера ещё нет переписок.'
 
             await callback.message.answer(content)
 
