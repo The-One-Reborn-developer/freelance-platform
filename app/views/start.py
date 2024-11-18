@@ -1,29 +1,29 @@
-def choose_option():
+def choose_option() -> str:
     return 'Выберите опцию ⏬'
 
 
-def not_registered():
+def not_registered() -> str:
     return 'Здравствуйте! Добро пожаловать в бота для поиска заказчиков/мастеров.\n\n' \
         'Пожалуйста, укажите, кто Вы ⏬'
 
 
-def name_input():
+def name_input() -> str:
     return 'Введите ФИО 📜'
 
 
-def customer_successful_registration():
+def customer_successful_registration() -> str:
     return 'Вы успешно зарегистрированы как заказчик!\n\n' \
         'Выберите опцию ⏬'
 
 
-def rate_input():
+def rate_input() -> str:
     return 'Введите свою ставку в ₽'
 
 
-def experience_input():
+def experience_input() -> str:
     return 'Введите свой стаж в годах (только число).'
 
 
-def performer_successful_registration():
+def performer_successful_registration() -> str:
     return 'Вы успешно зарегистрированы как мастер!\n\n' \
         'Выберите опцию ⏬'
