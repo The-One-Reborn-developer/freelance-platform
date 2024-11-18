@@ -12,9 +12,16 @@ from app.keyboards.start import start_keyboard
 from app.keyboards.menu import (performer_menu_keyboard,
                                 customer_menu_keyboard)
 
-from app.views.start import (start_registered,
-                             start_not_registered)
-from app.views.error import error
+from app.views.start import (registered,
+                             not_registered,
+                             name_input,
+                             customer_successful_registration,
+                             rate_input,
+                             experience_input,
+                             performer_successful_registration)
+from app.views.errors import (general,
+                              rate_wrong_type,
+                              experience_wrong_type)
 
 
 start_router = Router()
@@ -42,13 +49,13 @@ async def start_command_handler(message: Message, state: FSMContext):
         elif user[4]:
             keyboard = customer_menu_keyboard()
 
-        await message.answer(start_registered(), reply_markup=keyboard)
+        await message.answer(registered(), reply_markup=keyboard)
     elif user == []:
         post_user_task.delay(message.from_user.id)
 
-        await message.answer(start_not_registered(), reply_markup=start_keyboard())
+        await message.answer(not_registered(), reply_markup=start_keyboard())
     else:
-        await message.answer(error())
+        await message.answer(general())
 
 
 @start_router.callback_query(F.data == 'customer')
@@ -56,9 +63,7 @@ async def customer_callback_handler(callback: CallbackQuery, state: FSMContext):
     await state.update_data(type=callback.data)
     await state.set_state(CustomerRegistration.name)
 
-    content = 'Введите ФИО 📜'
-
-    await callback.message.answer(content)
+    await callback.message.answer(name_input())
 
 
 @start_router.message(CustomerRegistration.name)
@@ -70,13 +75,10 @@ async def customer_registration_name_handler(message: Message, state: FSMContext
                         full_name=data['name'],
                         is_customer=True,
                         chat_id=message.chat.id)
-
-    content = 'Вы успешно зарегистрированы как заказчик!\n\n' \
-              'Выберите опцию ⏬'
     
     await state.clear()
 
-    await message.answer(content, reply_markup=customer_menu_keyboard())
+    await message.answer(customer_successful_registration(), reply_markup=customer_menu_keyboard())
 
 
 @start_router.callback_query(F.data == 'performer')
@@ -84,9 +86,7 @@ async def performer_callback_handler(callback: CallbackQuery, state: FSMContext)
     await state.update_data(type=callback.data)
     await state.set_state(PerformerRegistration.name)
 
-    content = 'Введите ФИО 📜'
-
-    await callback.message.answer(content)
+    await callback.message.answer(name_input())
 
 
 @start_router.message(PerformerRegistration.name)
@@ -94,9 +94,7 @@ async def performer_registration_name_handler(message: Message, state: FSMContex
     await state.update_data(name=message.text)
     await state.set_state(PerformerRegistration.rate)
 
-    content = 'Введите свою ставку в ₽'
-
-    await message.answer(content)
+    await message.answer(rate_input())
 
 
 @start_router.message(PerformerRegistration.rate)
@@ -104,17 +102,13 @@ async def performer_registration_rate_handler(message: Message, state: FSMContex
     rate = message.text
 
     if not rate.isdigit():
-        content = 'Пожалуйста, введите свою ставку в ₽ числом.'
-
-        await message.answer(content)
+        await message.answer(rate_wrong_type())
         return
     
     await state.update_data(rate=rate)
     await state.set_state(PerformerRegistration.experience)
 
-    content = 'Введите свой стаж в годах (только число).'
-
-    await message.answer(content)
+    await message.answer(experience_input())
 
 
 @start_router.message(PerformerRegistration.experience)
@@ -124,9 +118,7 @@ async def performer_registration_experience_handler(message: Message, state: FSM
     try:
         experience = int(experience)
     except ValueError:
-        content = 'Пожалуйста, введите свой стаж в годах числом.'
-
-        await message.answer(content)
+        await message.answer(experience_wrong_type())
         return
     
     await state.update_data(experience=experience)
@@ -139,10 +131,7 @@ async def performer_registration_experience_handler(message: Message, state: FSM
                         rate=float(data['rate']),
                         experience=int(data['experience']),
                         chat_id=message.chat.id)
-
-    content = 'Вы успешно зарегистрированы как исполнитель!\n\n' \
-              'Выберите опцию ⏬'
     
     await state.clear()
 
-    await message.answer(content, reply_markup=performer_menu_keyboard())
+    await message.answer(performer_successful_registration(), reply_markup=performer_menu_keyboard())
