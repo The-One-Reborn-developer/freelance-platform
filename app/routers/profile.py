@@ -9,6 +9,15 @@ from app.tasks.celery_app import put_user_task
 from app.keyboards.profile import (performer_profile_keyboard,
     customer_profile_keyboard,)
 
+from app.views.start import (rate_input,
+                             experience_input)
+from app.views.profile import (customer_base,
+                               performer_base,
+                               performer_changed)
+from app.views.errors import (general,
+                              rate_wrong_type,
+                              experience_wrong_type)
+
 
 profile_router = Router()
 
@@ -26,48 +35,41 @@ async def profile_callback_handler(callback: CallbackQuery, state: FSMContext):
 
     if user != [] and user is not None:
         if user[4]:
-            content = 'Ваш профиль:\n\n' \
-                    f'Имя: {user[2]}'
-            
-            await callback.message.answer(content, reply_markup=customer_profile_keyboard())
+            full_name = user[2]            
+            await callback.message.answer(customer_base(full_name),
+                                          reply_markup=customer_profile_keyboard())
         elif user[3]:
-            content = 'Ваш профиль:\n\n' \
-                    f'Имя: {user[2]}\n' \
-                    f'Ставка: {user[5]}₽\n' \
-                    f'Стаж работы в годах: {user[6]}'
+            full_name = user[2]
+            rate = user[5]
+            experience = user[6]
             
-            await callback.message.answer(content, reply_markup=performer_profile_keyboard())
+            await callback.message.answer(performer_base(full_name, rate, experience),
+                                          reply_markup=performer_profile_keyboard())
     else:
-        content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
-
-        await callback.answer(content, show_alert=True)
+        await callback.answer(general(), show_alert=True)
 
 
 @profile_router.callback_query(F.data == 'change_info')
 async def profile_performer_name_change_handler(callback: CallbackQuery, state: FSMContext):
     await state.set_state(PerformerInfoChange.rate)
 
-    content = 'Введите свою ставку в ₽'
-
-    await callback.message.answer(content)
+    await callback.message.answer(rate_input())
 
 
 @profile_router.message(PerformerInfoChange.rate)
 async def profile_performer_rate_change_handler(message: Message, state: FSMContext):
     rate = message.text
 
-    if not rate.isdigit():
-        content = 'Пожалуйста, введите свою ставку в ₽ числом.'
-
-        await message.answer(content)
+    try:
+        rate = float(rate)
+    except ValueError:
+        await message.answer(rate_wrong_type())
         return
     
     await state.update_data(rate=rate)
     await state.set_state(PerformerInfoChange.experience)
 
-    content = 'Введите свой стаж в годах (только число).'
-
-    await message.answer(content)
+    await message.answer(experience_input())
 
 
 @profile_router.message(PerformerInfoChange.experience)
@@ -77,9 +79,7 @@ async def profile_performer_experience_change_handler(message: Message, state: F
     try:
         experience = int(experience)
     except ValueError:
-        content = 'Пожалуйста, введите свой стаж в годах числом.'
-
-        await message.answer(content)
+        await message.answer(experience_wrong_type())
         return
 
     await state.update_data(experience=message.text)
@@ -92,17 +92,13 @@ async def profile_performer_experience_change_handler(message: Message, state: F
     user = get_user_by_telegram_id_task.delay(message.from_user.id).get()
 
     if user != [] and user is not None:
-        content = 'Информация изменена ☑️\n\n' \
-                'Ваш профиль:\n\n' \
-                f'Имя: {user[2]}\n' \
-                f'Ставка: {user[5]}₽\n' \
-                f'Стаж работы в годах: {user[6]}'
-        
+        full_name = user[2]
+        rate=user[5]
+        experience=user[6]
 
         await state.clear()
 
-        await message.answer(content, reply_markup=performer_profile_keyboard())
+        await message.answer(performer_changed(full_name, rate, experience),
+                             reply_markup=performer_profile_keyboard())
     else:
-        content = 'Произошла ошибка 🙁\nПопробейте ещё раз или обратитесь в поддержку.'
-
-        await message.answer(content)
+        await message.answer(general())

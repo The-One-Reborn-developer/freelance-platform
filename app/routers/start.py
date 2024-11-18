@@ -101,7 +101,9 @@ async def performer_registration_name_handler(message: Message, state: FSMContex
 async def performer_registration_rate_handler(message: Message, state: FSMContext):
     rate = message.text
 
-    if not rate.isdigit():
+    try:
+        rate = float(rate)
+    except ValueError:
         await message.answer(rate_wrong_type())
         return
     
