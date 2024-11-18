@@ -35,7 +35,11 @@ async def look_chats_handler(callback: CallbackQuery):
 
                 content = f'<b>Отклик:</b> <u>{response["id"]}</u>\n' \
                           f'<b>Номер заказа:</b> <i>{response["bid_id"]}</i>\n' \
-                          f'<b>Имя заказчика:</b> <i>{customer_full_name}</i>'
+                          f'<b>Имя заказчика:</b> <i>{customer_full_name}</i>' \
+                          f'<b>Город:</b> <i>{response["city"]}</i>\n' \
+                          f'<b>Описание:</b> {response["description"]}\n' \
+                          f'<b>Срок выполнения работ:</b> <i>{response["deadline"]}</i>\n' \
+                          f'<b>Предоставляет инструмент:</b> <i>{response["instrument_provided"]}</i>'
                         
                 keyboard = InlineKeyboardMarkup(
                     inline_keyboard=[
