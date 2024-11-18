@@ -10,6 +10,7 @@ def get_all_customer_chats(customer_telegram_id: int) -> list | None:
         if customer_responses:
             for response in customer_responses:
                 if response['chat_started']:
+                    print(f'response {response} appended to started_chats')
                     started_chats.append(response['bid_id'])
 
         return started_chats
