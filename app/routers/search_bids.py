@@ -87,16 +87,12 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
         customer_telegram_id = callback.data.split('_')[3]
 
         chats_ids = get_all_customer_chats_task.delay(customer_telegram_id).get()
-
-        print(f'total chats: {chats_ids}')
         
         if chats_ids:
             await state.set_state(SearchBids.chat)
 
             for chat_id in chats_ids:
                 bid_id = int(chat_id)
-                
-                print(f'processing chat_id {chat_id}')
 
                 bid_data = get_bid_by_bid_id_task.delay(bid_id).get()
                 city = bid_data[2]
@@ -116,8 +112,6 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
 
                 if responses != [] and responses is not None:
                     for response in responses:
-                        print(f'processing response {response}')
-
                         performer_telegram_id = response['performer_telegram_id']
                         performer_full_name = response['performer_full_name']
                         performer_rate = response['performer_rate']
