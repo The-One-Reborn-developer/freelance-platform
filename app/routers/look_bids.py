@@ -40,11 +40,11 @@ async def look_bids_callback_handler(callback: CallbackQuery, state: FSMContext)
     if bids == []:
         content = 'На данный момент у Вас нет активных заказов 🙂'
 
-        await callback.message.answer(content)
+        await callback.answer(content, show_alert=True)
     elif bids == None:
         content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
 
-        await callback.message.answer(content)
+        await callback.answer(content, show_alert=True)
     else:
         for bid in bids:
             if bid['instrument_provided'] == 1:
@@ -83,15 +83,15 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
         if bid_closed:
             content = f'Заказ №{bid_id} закрыт как выполненный ✅'
 
-            await callback.message.answer(content)
+            await callback.answer(content, show_alert=True)
         elif not bid_closed:
             content = f'Заказ №{bid_id} уже закрыт как выполненный или не найден.'
 
-            await callback.message.answer(content)
+            await callback.answer(content, show_alert=True)
         else:
             content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
 
-            await callback.message.answer(content)
+            await callback.answer(content, show_alert=True)
     elif callback.data.startswith('look_responses_'):
         await state.set_state(LookBids.performer_actions)
 
@@ -123,11 +123,11 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
         elif responses == []:
             content = 'На данный момент у заказа нет откликов 🙂'
 
-            await callback.message.answer(content)
+            await callback.answer(content, show_alert=True)
         else:
             content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
 
-            await callback.message.answer(content)
+            await callback.answer(content, show_alert=True)
 
 
 @look_bids_router.callback_query(LookBids.performer_actions)
@@ -195,7 +195,7 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
         else:
             content = 'У данного мастера ещё нет переписок.'
 
-            await callback.message.answer(content)
+            await callback.answer(content, show_alert=True)
 
 
 @look_bids_router.message(LookBids.message)

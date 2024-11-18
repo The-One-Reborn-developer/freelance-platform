@@ -81,18 +81,18 @@ async def new_bid_description_handler(callback: CallbackQuery, state: FSMContext
 
         await state.clear()
 
-        await callback.message.answer(content, reply_markup=customer_menu_keyboard())
+        await callback.answer(content, show_alert=True)
     elif new_bid == None:
         content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
 
         await state.clear()
 
-        await callback.message.answer(content, reply_markup=customer_menu_keyboard())
+        await callback.answer(content, show_alert=True)
     else:
         content = 'Заявка создана! ☑️\n' \
                   'При отклике на заявку Вы получите уведомление.'
     
         await state.clear()
 
-        await callback.message.answer(content, reply_markup=customer_menu_keyboard())
+        await callback.answer(content, show_alert=True)
 

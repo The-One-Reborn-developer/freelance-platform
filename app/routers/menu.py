@@ -28,4 +28,4 @@ async def menu_callback_handler(callback: CallbackQuery):
     else:
         content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
 
-        await callback.message.answer(content)
+        await callback.answer(content, show_alert=True)

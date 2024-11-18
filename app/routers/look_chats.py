@@ -57,11 +57,11 @@ async def look_chats_handler(callback: CallbackQuery):
         content = 'Вам ещё не писал заказчик.\n' \
                   'Как только какой-либо заказчик напишет Вам, вы сможете увидеть его здесь.'
 
-        await callback.message.answer(content, reply_markup=performer_menu_keyboard())
+        await callback.answer(content, show_alert=True)
     else:
         content = 'Произошла ошибка 🙁\nПопробейте ещё раз или обратитесь в поддержку.'
 
-        await callback.message.answer(content, reply_markup=performer_menu_keyboard())
+        await callback.answer(content, show_alert=True)
 
 
 @look_chats_router.callback_query(F.data.startswith('write_to_customer_'))

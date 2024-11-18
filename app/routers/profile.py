@@ -40,7 +40,7 @@ async def profile_callback_handler(callback: CallbackQuery, state: FSMContext):
     else:
         content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
 
-        await callback.message.answer(content)
+        await callback.answer(content, show_alert=True)
 
 
 @profile_router.callback_query(F.data == 'change_info')

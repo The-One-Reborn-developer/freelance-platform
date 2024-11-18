@@ -74,11 +74,11 @@ async def search_bids_city_handler(callback: CallbackQuery, state: FSMContext):
     elif bids == []:
         content = 'На данный момент нет свободных заказов 🙁'
 
-        await callback.message.answer(content)
+        await callback.answer(content, show_alert=True)
     else:
         content = 'Что-то пошло не так, попробуйте ещё раз.'
 
-        await callback.message.answer(content)
+        await callback.answer(content, show_alert=True)
 
 
 @search_bids_router.callback_query(SearchBids.selection)
@@ -145,11 +145,11 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
                 else:
                     content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
 
-                    await callback.message.answer(content)
+                    await callback.answer(content, show_alert=True)
         else:
             content = 'У данного заказчика ещё нет переписок.'
 
-            await callback.message.answer(content)
+            await callback.answer(content, show_alert=True)
     else:
         performer = get_user_by_telegram_id_task.delay(callback.from_user.id).get()
         
@@ -163,22 +163,22 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
             if response == False:
                 content = 'Вы уже откликнулись на данный заказ!'
 
-                await callback.message.answer(content)
+                await callback.answer(content, show_alert=True)
             elif response == None:
                 content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
 
-                await callback.message.answer(content)
+                await callback.answer(content, show_alert=True)
             else:
                 send_response(callback.data)
 
                 content = f'Вы успешно откликнулись на заказ №{callback.data}!\n' \
                     'Заказчик получит уведомление о Вашем отклике.'
 
-                await callback.message.answer(content)
+                await callback.answer(content, show_alert=True)
         else:
             content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
 
-            await callback.message.answer(content)
+            await callback.answer(content, show_alert=True)
 
 
 @search_bids_router.callback_query(SearchBids.chat)
@@ -214,4 +214,4 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
                 else:
                     await callback.message.answer(message, parse_mode='HTML')
         else:
-            await callback.message.answer("Чат пока пуст или произошла ошибка.")
+            await callback.answer(text="Чат пока пуст или произошла ошибка.", show_alert=True)
