@@ -1,4 +1,4 @@
-def registered():
+def choose_option():
     return 'Выберите опцию ⏬'
 
 

@@ -12,7 +12,7 @@ from app.keyboards.start import start_keyboard
 from app.keyboards.menu import (performer_menu_keyboard,
                                 customer_menu_keyboard)
 
-from app.views.start import (registered,
+from app.views.start import (choose_option,
                              not_registered,
                              name_input,
                              customer_successful_registration,
@@ -49,7 +49,7 @@ async def start_command_handler(message: Message, state: FSMContext):
         elif user[4]:
             keyboard = customer_menu_keyboard()
 
-        await message.answer(registered(), reply_markup=keyboard)
+        await message.answer(choose_option(), reply_markup=keyboard)
     elif user == []:
         post_user_task.delay(message.from_user.id)
 
