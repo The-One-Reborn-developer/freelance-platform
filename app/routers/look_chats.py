@@ -30,16 +30,18 @@ async def look_chats_handler(callback: CallbackQuery):
             if bid_closed:
                 continue
             else:
-                customer_telegram_id = get_bid_by_bid_id_task.delay(response["bid_id"]).get()[1]
+                bid = get_bid_by_bid_id_task.delay(response["bid_id"]).get()
+
+                customer_telegram_id = bid[1]
                 customer_full_name = get_user_by_telegram_id_task.delay(customer_telegram_id).get()[2]
 
                 content = f'<b>Отклик:</b> <u>{response["id"]}</u>\n' \
                           f'<b>Номер заказа:</b> <i>{response["bid_id"]}</i>\n' \
                           f'<b>Имя заказчика:</b> <i>{customer_full_name}</i>' \
-                          f'<b>Город:</b> <i>{response["city"]}</i>\n' \
-                          f'<b>Описание:</b> {response["description"]}\n' \
-                          f'<b>Срок выполнения работ:</b> <i>{response["deadline"]}</i>\n' \
-                          f'<b>Предоставляет инструмент:</b> <i>{response["instrument_provided"]}</i>'
+                          f'<b>Город:</b> <i>{bid[2]}</i>\n' \
+                          f'<b>Описание:</b> {bid[3]}\n' \
+                          f'<b>Срок выполнения работ:</b> <i>{bid[4]}</i>\n' \
+                          f'<b>Предоставляет инструмент:</b> <i>{bid[5]}</i>'
                         
                 keyboard = InlineKeyboardMarkup(
                     inline_keyboard=[
