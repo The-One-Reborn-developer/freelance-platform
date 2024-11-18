@@ -43,13 +43,13 @@ async def profile_callback_handler(callback: CallbackQuery, state: FSMContext):
         await callback.message.answer(content)
 
 
-@profile_router.message(F.data == 'change_info')
-async def profile_performer_name_change_handler(message: Message, state: FSMContext):
+@profile_router.callback_query(F.data == 'change_info')
+async def profile_performer_name_change_handler(callback: CallbackQuery, state: FSMContext):
     await state.set_state(PerformerInfoChange.rate)
 
     content = 'Введите свою ставку в ₽'
 
-    await message.answer(content)
+    await callback.message.answer(content)
 
 
 @profile_router.message(PerformerInfoChange.rate)
