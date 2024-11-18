@@ -93,13 +93,20 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
 
             for chat_id in chats_ids:
                 bid_id = int(chat_id)
-                # Fetch bid details only once
+                
                 bid_data = get_bid_by_bid_id_task.delay(bid_id).get()
                 city = bid_data[2]
                 description = bid_data[3]
                 deadline = bid_data[4]
                 instrument_provided = 'Да' if bid_data[5] == 1 else 'Нет'
                 closed = 'Выполнен' if bid_data[6] == 1 else 'Не выполнен'
+
+                base_content = f'<b>Номер заказа:</b> <u>{bid_id}</u>\n' \
+                          f'<b>Город:</b> <i>{city}</i>\n' \
+                          f'<b>Описание:</b> {description}\n' \
+                          f'<b>Сроки выполнения работы:</b> <i>{deadline}</i>\n' \
+                          f'<b>Предоставляет инструмент:</b> <i>{instrument_provided}</i>\n' \
+                          f'<b>Статус:</b> <i>{closed}</i>\n\n'
 
                 responses = get_responses_by_bid_id_task.delay(bid_id).get()
 
@@ -109,16 +116,12 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
                         performer_full_name = response['performer_full_name']
                         performer_rate = response['performer_rate']
                         performer_experience = response['performer_experience']
-
-                        content = f'<b>Номер заказа:</b> <u>{bid_id}</u>\n' \
-                          f'<b>Город:</b> <i>{city}</i>\n' \
-                          f'<b>Описание:</b> {description}\n' \
-                          f'<b>Сроки выполнения работы:</b> <i>{deadline}</i>\n' \
-                          f'<b>Предоставляет инструмент:</b> <i>{instrument_provided}</i>\n' \
-                          f'<b>Статус:</b> <i>{closed}</i>\n\n' \
-                          f'<b>Откликнулся:</b> <i>{performer_full_name}</i>\n' \
+                        
+                        additional_content = f'<b>Откликнулся:</b> <i>{performer_full_name}</i>\n' \
                           f'<b>Ставка:</b> <i>{performer_rate}</i>\n' \
                           f'<b>Стаж:</b> <i>{performer_experience}</i>'
+                        
+                        full_content = base_content + additional_content
 
                         keyboard = InlineKeyboardMarkup(
                             inline_keyboard=[
@@ -129,7 +132,7 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
                             ]
                         )
                         
-                        await callback.message.answer(content, parse_mode='HTML', reply_markup=keyboard)
+                        await callback.message.answer(full_content, parse_mode='HTML', reply_markup=keyboard)
                 elif responses == []:
                     content = f'<b>Номер заказа:</b> <u>{bid_id}</u>\n' \
                       f'<b>Город:</b> <i>{city}</i>\n' \
