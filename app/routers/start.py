@@ -12,6 +12,10 @@ from app.keyboards.start import start_keyboard
 from app.keyboards.menu import (performer_menu_keyboard,
                                 customer_menu_keyboard)
 
+from app.views.start import (start_registered,
+                             start_not_registered)
+from app.views.error import error
+
 
 start_router = Router()
 
@@ -33,25 +37,18 @@ async def start_command_handler(message: Message, state: FSMContext):
     user = get_user_by_telegram_id_task.delay(message.from_user.id).get()
 
     if user != [] and user is not None:
-        content = 'Выберите опцию ⏬'
-
         if user[3]:
             keyboard = performer_menu_keyboard()
         elif user[4]:
             keyboard = customer_menu_keyboard()
 
-        await message.answer(content, reply_markup=keyboard)
+        await message.answer(start_registered(), reply_markup=keyboard)
     elif user == []:
         post_user_task.delay(message.from_user.id)
 
-        content = 'Здравствуйте! Добро пожаловать в бота для поиска заказчиков/мастеров.\n\n' \
-                  'Пожалуйста, укажите, кто Вы ⏬'
-
-        await message.answer(content, reply_markup=start_keyboard())
+        await message.answer(start_not_registered(), reply_markup=start_keyboard())
     else:
-        content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
-
-        await message.answer(content)
+        await message.answer(error())
 
 
 @start_router.callback_query(F.data == 'customer')
