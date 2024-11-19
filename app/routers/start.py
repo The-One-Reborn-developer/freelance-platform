@@ -44,6 +44,8 @@ async def start_command_handler(message: Message, state: FSMContext):
     user = get_user_by_telegram_id_task.delay(message.from_user.id).get()
 
     if user != [] and user is not None:
+        keyboard = None
+
         if user[3]:
             keyboard = performer_menu_keyboard()
         elif user[4]:
