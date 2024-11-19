@@ -109,7 +109,7 @@ async def look_bids_selection_handler(callback: CallbackQuery, state: FSMContext
                 keyboard = InlineKeyboardMarkup(
                     inline_keyboard=[
                         [
-                            InlineKeyboardButton(text='Написать мастеру ✉️',
+                            InlineKeyboardButton(text='Войти в чат с мастером ✉️',
                                                  callback_data=f'write_to_performer_{response["performer_telegram_id"]}_{bid_id}'),
                         ],
                         [
@@ -143,7 +143,7 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
                                 bid_id=bid_id)
         await state.set_state(LookBids.message)
 
-        content = 'Введите текст сообщения, можете прикрепить видео 📹'
+        content = 'Начните писать мастеру, можете прикрепить видео 📹'
 
         await callback.message.answer(content)
     elif callback.data.startswith('look_performer_chats_'):
@@ -216,7 +216,7 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
     performer_full_name = get_user_by_telegram_id_task.delay(performer_telegram_id).get()[2]
 
     if message.video:
-        message_content = f'Сообщение от заказчика {customer_full_name}:\n\n{message.caption}'
+        message_content = f'Заказчик {customer_full_name}:\n\n{message.caption}'
 
         save_customer_chat_message(bid_id,
                                    customer_telegram_id,
@@ -230,7 +230,7 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
                                      video=message.video.file_id,
                                      caption=message_content)
     else:
-        message_content = f'Сообщение от заказчика {customer_full_name}:\n\n{message.text}'
+        message_content = f'Заказчик {customer_full_name}:\n\n{message.text}'
 
         save_customer_chat_message(bid_id,
                                    customer_telegram_id,
@@ -242,12 +242,6 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
 
         await message.bot.send_message(chat_id=performer_chat_id,
                                        text=message_content)
-
-    content = 'Сообщение отправлено!'
-
-    await state.clear()
-
-    await message.answer(content, reply_markup=customer_menu_keyboard())
 
 
 @look_bids_router.callback_query(LookBids.chat)

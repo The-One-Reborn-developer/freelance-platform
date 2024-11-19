@@ -46,7 +46,7 @@ async def look_chats_handler(callback: CallbackQuery):
                 keyboard = InlineKeyboardMarkup(
                     inline_keyboard=[
                         [
-                            InlineKeyboardButton(text='Написать заказчику ✉️',
+                            InlineKeyboardButton(text='Войти в переписку с заказчиком ✉️',
                                                 callback_data=f'write_to_customer_{customer_telegram_id}_{response["bid_id"]}')
                         ]
                     ]
@@ -70,7 +70,7 @@ async def write_to_customer_handler(callback: CallbackQuery, state: FSMContext):
     await state.update_data(customer_telegram_id=callback.data.split('_')[3],
                             bid_id=callback.data.split('_')[4])
 
-    content = 'Введите текст сообщения, можете прикрепить видео 📹'
+    content = 'Начните писать сообщения заказчику, можете прикрепить видео 📹'
 
     await callback.message.answer(content)
 
@@ -84,7 +84,7 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
     bid_id = data['bid_id']
     customer_full_name = get_user_by_telegram_id_task.delay(customer_telegram_id).get()[2]
     performer_full_name = get_user_by_telegram_id_task.delay(performer_telegram_id).get()[2]
-    
+
     if message.video:
         save_performer_chat_message(bid_id,
                                     customer_telegram_id,
@@ -94,7 +94,7 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
                                     message.caption,
                                     message.video.file_id)
         
-        message_content = f'Сообщение от мастера {get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}:\n\n<u>{message.caption}</u>'
+        message_content = f'<u>Мастер {get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}</u>:\n\n<u>{message.caption}</u>'
 
         await message.bot.send_video(chat_id=customer_telegram_id,
                                      video=message.video.file_id,
@@ -109,14 +109,8 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
                                     message.text,
                                     None)
         
-        message_content = f'Сообщение от мастера {get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}:\n\n<u>{message.text}</u>'
+        message_content = f'<u>Мастер{get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}</u>:\n\n<u>{message.text}</u>'
 
         await message.bot.send_message(chat_id=customer_telegram_id,
                                        text=message_content,
                                        parse_mode='HTML')
-        
-    content = 'Сообщение отправлено!'
-
-    await state.clear()
-
-    await message.answer(content, reply_markup=performer_menu_keyboard())
