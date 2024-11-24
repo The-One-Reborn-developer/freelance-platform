@@ -38,10 +38,11 @@ async def chat_answer_handler(callback: CallbackQuery, state: FSMContext):
                             is_customer=is_customer)
     
     if is_customer:
-        content = 'Начните писать ответ мастеру, можете прикрепить видео 📹'
+        content = 'Начните писать ответ мастеру, можете прикрепить видео 📹 {}'
     else:
         content = 'Начните писать ответ заказчику, можете прикрепить видео 📹'
 
+    content = f'is_customer: {is_customer}'
     await callback.answer(content, show_alert=True)
 
 
