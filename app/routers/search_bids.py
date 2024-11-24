@@ -123,7 +123,8 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
             elif response == None:
                 await callback.answer(general(), show_alert=True)
             else:
-                send_response(callback.data)
+                send_response(callback.data,
+                              callback.from_user.id)
 
                 await callback.answer(successfully_responded(callback.data),
                                       show_alert=True)
