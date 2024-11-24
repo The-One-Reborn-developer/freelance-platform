@@ -105,7 +105,7 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
                                                                        performer_telegram_id,
                                                                        customer_full_name,
                                                                        performer_full_name,
-                                                                       is_customer=False))
+                                                                       is_customer=True))
     else:    
         save_performer_chat_message(bid_id,
                                     customer_telegram_id,
@@ -115,7 +115,7 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
                                     message.text,
                                     None)
         
-        message_content = f'<u>Мастер{get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}</u>:\n\n<u>{message.text}</u>'
+        message_content = f'<u>Мастер {get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}</u>:\n\n<u>{message.text}</u>'
 
         await message.bot.send_message(chat_id=customer_telegram_id,
                                        text=message_content,
@@ -125,4 +125,4 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
                                                                          performer_telegram_id,
                                                                          customer_full_name,
                                                                          performer_full_name,
-                                                                         is_customer=False))
+                                                                         is_customer=True))
