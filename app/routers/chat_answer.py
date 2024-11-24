@@ -37,9 +37,12 @@ async def chat_answer_handler(callback: CallbackQuery, state: FSMContext):
                             performer_full_name=performer_full_name,
                             is_customer=is_customer)
     
-    content = 'Начните писать ответ, можете прикрепить видео 📹'
+    if is_customer:
+        content = 'Начните писать ответ мастеру, можете прикрепить видео 📹'
+    else:
+        content = 'Начните писать ответ заказчику, можете прикрепить видео 📹'
 
-    await callback.answer(content)
+    await callback.answer(content, show_alert=True)
 
 
 @chat_answer_router.message(ChatAnswer.message)
