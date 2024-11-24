@@ -233,8 +233,6 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
                                      reply_markup=chat_answer_keyboard(bid_id,
                                                                        customer_telegram_id,
                                                                        performer_telegram_id,
-                                                                       customer_full_name,
-                                                                       performer_full_name,
                                                                        is_customer=False))
     else:
         message_content = f'Заказчик {customer_full_name}:\n\n{message.text}'
@@ -253,8 +251,6 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
                                        reply_markup=chat_answer_keyboard(bid_id,
                                                                          customer_telegram_id,
                                                                          performer_telegram_id,
-                                                                         customer_full_name,
-                                                                         performer_full_name,
                                                                          is_customer=False))
 
 

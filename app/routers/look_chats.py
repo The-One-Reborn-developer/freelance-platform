@@ -103,8 +103,6 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
                                      reply_markup=chat_answer_keyboard(bid_id,
                                                                        customer_telegram_id,
                                                                        performer_telegram_id,
-                                                                       customer_full_name,
-                                                                       performer_full_name,
                                                                        is_customer=True))
     else:    
         save_performer_chat_message(bid_id,
@@ -123,6 +121,4 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
                                        reply_markup=chat_answer_keyboard(bid_id,
                                                                          customer_telegram_id,
                                                                          performer_telegram_id,
-                                                                         customer_full_name,
-                                                                         performer_full_name,
                                                                          is_customer=True))
