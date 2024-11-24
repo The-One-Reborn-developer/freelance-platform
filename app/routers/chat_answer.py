@@ -77,8 +77,6 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                         reply_markup=chat_answer_keyboard(bid_id,
                                                                         customer_telegram_id,
                                                                         performer_telegram_id,
-                                                                        customer_full_name,
-                                                                        performer_full_name,
                                                                         is_customer=False))
         else:
             message_content = f'Заказчик {customer_full_name}:\n\n{message.text}'
@@ -97,8 +95,6 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                         reply_markup=chat_answer_keyboard(bid_id,
                                                                         customer_telegram_id,
                                                                         performer_telegram_id,
-                                                                        customer_full_name,
-                                                                        performer_full_name,
                                                                         is_customer=False))
 
     elif not is_customer:
@@ -123,8 +119,6 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                         reply_markup=chat_answer_keyboard(bid_id,
                                                                         customer_telegram_id,
                                                                         performer_telegram_id,
-                                                                        customer_full_name,
-                                                                        performer_full_name,
                                                                         is_customer=True))
         else:
             save_performer_chat_message(bid_id,
@@ -143,6 +137,4 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                         reply_markup=chat_answer_keyboard(bid_id,
                                                                         customer_telegram_id,
                                                                         performer_telegram_id,
-                                                                        customer_full_name,
-                                                                        performer_full_name,
                                                                         is_customer=True))
