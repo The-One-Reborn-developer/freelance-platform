@@ -29,15 +29,13 @@ async def chat_answer_handler(callback: CallbackQuery, state: FSMContext):
     customer_full_name = callback_data[4]
     performer_full_name = callback_data[5]
     is_customer = callback_data[6] == 'True'
-    is_performer = callback_data[7] == 'True'
 
     await state.update_data(bid_id=bid_id,
                             customer_telegram_id=customer_telegram_id,
                             performer_telegram_id=performer_telegram_id,
                             customer_full_name=customer_full_name,
                             performer_full_name=performer_full_name,
-                            is_customer=is_customer,
-                            is_performer=is_performer)
+                            is_customer=is_customer)
     
     if is_customer:
         content = f'Начните писать ответ заказчику, можете прикрепить видео 📹 {is_customer}'
@@ -56,9 +54,8 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
     customer_full_name = data['customer_full_name']
     performer_full_name = data['performer_full_name']
     is_customer = data['is_customer']
-    is_performer = data['is_performer']
 
-    if is_customer and not is_performer:
+    if is_customer:
         performer_chat_id = get_user_by_telegram_id_task.delay(performer_telegram_id).get()[7]
 
         if message.video:
@@ -81,8 +78,7 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                                                         performer_telegram_id,
                                                                         customer_full_name,
                                                                         performer_full_name,
-                                                                        is_customer=True,
-                                                                        is_performer=False))
+                                                                        is_customer=True))
         else:
             message_content = f'Заказчик {customer_full_name}:\n\n{message.text}'
 
@@ -102,13 +98,10 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                                                         performer_telegram_id,
                                                                         customer_full_name,
                                                                         performer_full_name,
-                                                                        is_customer=True,
-                                                                        is_performer=False))
+                                                                        is_customer=True))
 
-    elif not is_customer and is_performer:
+    elif not is_customer:
         customer_chat_id = get_user_by_telegram_id_task.delay(customer_telegram_id).get()[7]
-
-        performer_name = get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]
 
         if message.video:
             save_performer_chat_message(bid_id,
@@ -119,7 +112,7 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                         message.caption,
                                         message.video.file_id)
 
-            message_content = f'<u>Мастер {performer_name}</u>:\n\n{message.caption}'
+            message_content = f'<u>Мастер {performer_full_name}</u>:\n\n{message.caption}'
 
             await message.bot.send_video(chat_id=customer_chat_id,
                                         video=message.video.file_id,
@@ -130,8 +123,7 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                                                         performer_telegram_id,
                                                                         customer_full_name,
                                                                         performer_full_name,
-                                                                        is_customer=False,
-                                                                        is_performer=True))
+                                                                        is_customer=False))
         else:
             save_performer_chat_message(bid_id,
                                         customer_telegram_id,
@@ -141,15 +133,14 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                         message.text,
                                         None)
 
-            message_content = f'<u>Мастер {performer_name}</u>:\n\n{message.text}'
+            message_content = f'<u>Мастер {performer_full_name}</u>:\n\n{message.text}'
 
             await message.bot.send_message(chat_id=customer_chat_id,
                                         text=message_content,
                                         parse_mode='HTML',
                                         reply_markup=chat_answer_keyboard(bid_id,
-                                                                            customer_telegram_id,
-                                                                            performer_telegram_id,
-                                                                            customer_full_name,
-                                                                            performer_full_name,
-                                                                            is_customer=False,
-                                                                            is_performer=True))
+                                                                        customer_telegram_id,
+                                                                        performer_telegram_id,
+                                                                        customer_full_name,
+                                                                        performer_full_name,
+                                                                        is_customer=False))
