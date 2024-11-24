@@ -8,3 +8,7 @@ def rate_wrong_type() -> str:
 
 def experience_wrong_type() -> str:
     return 'Пожалуйста, введите свой стаж в годах числом.'
+
+
+def no_chats() -> str:
+    return 'У данного заказа ещё нет переписок.'

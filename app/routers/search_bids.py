@@ -17,7 +17,8 @@ from app.keyboards.cities import cities_keyboard
 from app.keyboards.search_bids import (respond_or_look_keyboard,
                                        look_bid_chat_keyboard)
 
-from app.views.errors import general
+from app.views.errors import (general,
+                              no_chats)
 from app.views.bid import choose_city
 from app.views.search_bids import (bid_info,
                                    no_available_bids,
@@ -141,26 +142,27 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
                             customer_telegram_id,
                             performer_telegram_id)
         
-        if response:
-            messages = [msg.strip() for msg in response.split("---") if msg.strip()]
-            for message in messages:
-                if "video_file_id:" in message:
-                    lines = message.split("\n")
-                    text_lines = []
-                    video_file_id = None
+        try:
+            if response:
+                messages = [msg.strip() for msg in response.split("---") if msg.strip()]
+                for message in messages:
+                    if "video_file_id:" in message:
+                        lines = message.split("\n")
+                        text_lines = []
+                        video_file_id = None
 
-                    for line in lines:
-                        if line.startswith("video_file_id:"):
-                            video_file_id = line.split(":", 1)[1].strip()
-                        else:
-                            text_lines.append(line.strip())
-                    
-                    caption = "\n".join(text_lines)
-                    
-                    await callback.message.answer_video(video=video_file_id,
-                                                        caption=caption,
-                                                        parse_mode='HTML')
-                else:
-                    await callback.message.answer(message, parse_mode='HTML')
-        else:
-            await callback.answer(text=general(), show_alert=True)
+                        for line in lines:
+                            if line.startswith("video_file_id:"):
+                                video_file_id = line.split(":", 1)[1].strip()
+                            else:
+                                text_lines.append(line.strip())
+                        
+                        caption = "\n".join(text_lines)
+                        
+                        await callback.message.answer_video(video=video_file_id,
+                                                            caption=caption,
+                                                            parse_mode='HTML')
+                    else:
+                        await callback.message.answer(message, parse_mode='HTML')
+        except Exception as e:
+            await callback.answer(text=no_chats(), show_alert=True)
