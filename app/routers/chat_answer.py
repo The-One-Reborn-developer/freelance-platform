@@ -38,7 +38,7 @@ async def chat_answer_handler(callback: CallbackQuery, state: FSMContext):
                             is_customer=is_customer)
     
     if is_customer:
-        content = 'Начните писать ответ мастеру, можете прикрепить видео 📹 {}'
+        content = 'Начните писать ответ мастеру, можете прикрепить видео 📹'
 
         await callback.answer(content, show_alert=True)
     else:
@@ -80,7 +80,7 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                                                         performer_telegram_id,
                                                                         customer_full_name,
                                                                         performer_full_name,
-                                                                        is_customer=True))
+                                                                        is_customer=False))
         else:
             message_content = f'Заказчик {customer_full_name}:\n\n{message.text}'
 
@@ -100,7 +100,7 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                                                         performer_telegram_id,
                                                                         customer_full_name,
                                                                         performer_full_name,
-                                                                        is_customer=True))
+                                                                        is_customer=False))
 
     else:
         customer_chat_id = get_user_by_telegram_id_task.delay(customer_telegram_id).get()[7]
@@ -125,7 +125,7 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                                                         performer_telegram_id,
                                                                         customer_full_name,
                                                                         performer_full_name,
-                                                                        is_customer=False))
+                                                                        is_customer=True))
         else:    
             save_performer_chat_message(bid_id,
                                         customer_telegram_id,
@@ -145,4 +145,4 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                                                         performer_telegram_id,
                                                                         customer_full_name,
                                                                         performer_full_name,
-                                                                        is_customer=False))
+                                                                        is_customer=True))
