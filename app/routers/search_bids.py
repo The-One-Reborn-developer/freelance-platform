@@ -16,6 +16,17 @@ from app.scripts.get_chat import get_chat
 
 from app.keyboards.cities import cities_keyboard
 
+from app.views.errors import general
+from app.views.bid import choose_city
+from app.views.search_bids import (bid_info,
+                                   no_available_bids,
+                                   look_customer_chats_base_content,
+                                   look_customer_chats_additional_content,
+                                   look_customer_chats_no_responses,
+                                   customer_no_chats,
+                                   already_responded,
+                                   successfully_responded)
+
 
 search_bids_router = Router()
 
@@ -30,9 +41,7 @@ class SearchBids(StatesGroup):
 async def search_bids_callback_handler(callback: CallbackQuery, state: FSMContext):
     await state.set_state(SearchBids.city)
 
-    content = 'Выберите город ⏬'
-
-    await callback.message.answer(content, reply_markup=cities_keyboard())
+    await callback.message.answer(choose_city(), reply_markup=cities_keyboard())
 
 
 @search_bids_router.callback_query(SearchBids.city)
@@ -43,17 +52,6 @@ async def search_bids_city_handler(callback: CallbackQuery, state: FSMContext):
         for bid in bids:
             customer = get_user_by_telegram_id_task.delay(bid['customer_telegram_id']).get()
             customer_full_name = customer[2]
-
-            if bid['instrument_provided'] == 1:
-                bid['instrument_provided'] = 'Да'
-            elif bid['instrument_provided'] == 0:
-                bid['instrument_provided'] = 'Нет'
-
-            content = f'<b>Номер заказа:</b> <u>{bid["id"]}</u>\n' \
-                      f'<b>Заказчик:</b> <i>{customer_full_name}</i>\n' \
-                      f'<b>Описание:</b> {bid["description"]}\n' \
-                      f'<b>До какого числа нужно выполнить работу:</b> <i>{bid["deadline"]}</i>\n' \
-                      f'<b>Предоставляет инструмент:</b> <i>{bid["instrument_provided"]}</i>'
 
             await state.set_state(SearchBids.selection)
 
@@ -70,15 +68,14 @@ async def search_bids_city_handler(callback: CallbackQuery, state: FSMContext):
                 ]
             )
 
-            await callback.message.answer(content, parse_mode='HTML', reply_markup=keyboard)
+            await callback.message.answer(bid_info(bid,
+                                                   customer_full_name),
+                                                   parse_mode='HTML',
+                                                   reply_markup=keyboard)
     elif bids == []:
-        content = 'На данный момент нет свободных заказов 🙁'
-
-        await callback.answer(content, show_alert=True)
+        await callback.answer(no_available_bids(), show_alert=True)
     else:
-        content = 'Что-то пошло не так, попробуйте ещё раз.'
-
-        await callback.answer(content, show_alert=True)
+        await callback.answer(general(), show_alert=True)
 
 
 @search_bids_router.callback_query(SearchBids.selection)
@@ -95,31 +92,17 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
                 bid_id = int(chat_id)
 
                 bid_data = get_bid_by_bid_id_task.delay(bid_id).get()
-                city = bid_data[2]
-                description = bid_data[3]
-                deadline = bid_data[4]
-                instrument_provided = 'Да' if bid_data[5] == 1 else 'Нет'
-                closed = 'Выполнен' if bid_data[6] == 1 else 'Не выполнен'
 
-                base_content = f'<b>Номер заказа:</b> <u>{bid_id}</u>\n' \
-                          f'<b>Город:</b> <i>{city}</i>\n' \
-                          f'<b>Описание:</b> {description}\n' \
-                          f'<b>Сроки выполнения работы:</b> <i>{deadline}</i>\n' \
-                          f'<b>Предоставляет инструмент:</b> <i>{instrument_provided}</i>\n' \
-                          f'<b>Статус:</b> <i>{closed}</i>\n\n'
+                base_content = look_customer_chats_base_content(bid_id,
+                                                                bid_data)
 
                 responses = get_responses_by_bid_id_task.delay(bid_id).get()
 
                 if responses != [] and responses is not None:
                     for response in responses:
                         performer_telegram_id = response['performer_telegram_id']
-                        performer_full_name = response['performer_full_name']
-                        performer_rate = response['performer_rate']
-                        performer_experience = response['performer_experience']
                         
-                        additional_content = f'<b>Откликнулся:</b> <i>{performer_full_name}</i>\n' \
-                          f'<b>Ставка:</b> <i>{performer_rate}</i>\n' \
-                          f'<b>Стаж:</b> <i>{performer_experience}</i>'
+                        additional_content = look_customer_chats_additional_content(response)
                         
                         full_content = base_content + additional_content
 
@@ -134,22 +117,13 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
                         
                         await callback.message.answer(full_content, parse_mode='HTML', reply_markup=keyboard)
                 elif responses == []:
-                    content = f'<b>Номер заказа:</b> <u>{bid_id}</u>\n' \
-                      f'<b>Город:</b> <i>{city}</i>\n' \
-                      f'<b>Описание:</b> {description}\n' \
-                      f'<b>Сроки выполнения работы:</b> <i>{deadline}</i>\n' \
-                      f'<b>Предоставляет инструмент:</b> <i>{instrument_provided}</i>\n' \
-                      f'<b>Статус:</b> <i>{closed}</i>\n\n' \
-                      'На данный заказ ещё нет откликов 🙁'
-                    await callback.message.answer(content)
+                    await callback.message.answer(look_customer_chats_no_responses(bid_id,
+                                                                                   bid_data),
+                                                                                   parse_mode='HTML')
                 else:
-                    content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
-
-                    await callback.answer(content, show_alert=True)
+                    await callback.answer(general(), show_alert=True)
         else:
-            content = 'У данного заказчика ещё нет переписок.'
-
-            await callback.answer(content, show_alert=True)
+            await callback.answer(customer_no_chats(), show_alert=True)
     else:
         performer = get_user_by_telegram_id_task.delay(callback.from_user.id).get()
         
@@ -161,24 +135,16 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
                                                 performer[6]).get()
 
             if response == False:
-                content = 'Вы уже откликнулись на данный заказ!'
-
-                await callback.answer(content, show_alert=True)
+                await callback.answer(already_responded(), show_alert=True)
             elif response == None:
-                content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
-
-                await callback.answer(content, show_alert=True)
+                await callback.answer(general(), show_alert=True)
             else:
                 send_response(callback.data)
 
-                content = f'Вы успешно откликнулись на заказ №{callback.data}!\n' \
-                    'Заказчик получит уведомление о Вашем отклике.'
-
-                await callback.answer(content, show_alert=True)
+                await callback.answer(successfully_responded(callback.data),
+                                      show_alert=True)
         else:
-            content = 'Произошла ошибка 🙁\nПопробуйте еще раз или обратитесь в поддержку.'
-
-            await callback.answer(content, show_alert=True)
+            await callback.answer(general(), show_alert=True)
 
 
 @search_bids_router.callback_query(SearchBids.chat)
@@ -214,4 +180,4 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
                 else:
                     await callback.message.answer(message, parse_mode='HTML')
         else:
-            await callback.answer(text="Чат пока пуст или произошла ошибка.", show_alert=True)
+            await callback.answer(text=general(), show_alert=True)
