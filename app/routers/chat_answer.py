@@ -28,7 +28,7 @@ async def chat_answer_handler(callback: CallbackQuery, state: FSMContext):
     performer_telegram_id = callback_data[3]
     customer_full_name = callback_data[4]
     performer_full_name = callback_data[5]
-    is_customer = callback_data[6].lower() == 'true'
+    is_customer = callback_data[6] == 'True'
 
     await state.update_data(bid_id=bid_id,
                             customer_telegram_id=customer_telegram_id,
@@ -38,9 +38,9 @@ async def chat_answer_handler(callback: CallbackQuery, state: FSMContext):
                             is_customer=is_customer)
     
     if is_customer:
-        content = f'Начните писать ответ мастеру, можете прикрепить видео 📹 {is_customer}'
-    else:
         content = f'Начните писать ответ заказчику, можете прикрепить видео 📹 {is_customer}'
+    else:
+        content = f'Начните писать ответ мастеру, можете прикрепить видео 📹 {is_customer}'
 
     await callback.answer(content, show_alert=True)
 
