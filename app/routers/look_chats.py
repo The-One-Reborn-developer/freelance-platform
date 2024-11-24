@@ -105,7 +105,8 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
                                                                        performer_telegram_id,
                                                                        customer_full_name,
                                                                        performer_full_name,
-                                                                       is_customer=False))
+                                                                       is_customer=False,
+                                                                       is_performer=True))
     else:    
         save_performer_chat_message(bid_id,
                                     customer_telegram_id,
@@ -125,4 +126,5 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
                                                                          performer_telegram_id,
                                                                          customer_full_name,
                                                                          performer_full_name,
-                                                                         is_customer=False))
+                                                                         is_customer=False,
+                                                                         is_performer=True))
