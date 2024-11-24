@@ -74,7 +74,8 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                                                         customer_telegram_id,
                                                                         performer_telegram_id,
                                                                         customer_full_name,
-                                                                        performer_full_name))
+                                                                        performer_full_name,
+                                                                        is_customer=True))
         else:
             message_content = f'Заказчик {customer_full_name}:\n\n{message.text}'
 
@@ -90,10 +91,11 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                         text=message_content,
                                         parse_mode='HTML',
                                         reply_markup=chat_answer_keyboard(bid_id,
-                                                                            customer_telegram_id,
-                                                                            performer_telegram_id,
-                                                                            customer_full_name,
-                                                                            performer_full_name))
+                                                                        customer_telegram_id,
+                                                                        performer_telegram_id,
+                                                                        customer_full_name,
+                                                                        performer_full_name,
+                                                                        is_customer=True))
 
     else:
         customer_chat_id = get_user_by_telegram_id_task.delay(customer_telegram_id).get()[7]
@@ -134,8 +136,8 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                         text=message_content,
                                         parse_mode='HTML',
                                         reply_markup=chat_answer_keyboard(bid_id,
-                                                                            customer_telegram_id,
-                                                                            performer_telegram_id,
-                                                                            customer_full_name,
-                                                                            performer_full_name,
-                                                                            is_customer=False))
+                                                                        customer_telegram_id,
+                                                                        performer_telegram_id,
+                                                                        customer_full_name,
+                                                                        performer_full_name,
+                                                                        is_customer=False))

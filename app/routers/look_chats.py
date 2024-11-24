@@ -72,7 +72,7 @@ async def write_to_customer_handler(callback: CallbackQuery, state: FSMContext):
 
     content = 'Начните писать сообщения заказчику, можете прикрепить видео 📹'
 
-    await callback.answer(content)
+    await callback.answer(content, show_alert=True)
 
 
 @look_chats_router.message(LookChats.message)

@@ -145,7 +145,7 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
 
         content = 'Начните писать мастеру, можете прикрепить видео 📹'
 
-        await callback.answer(content)
+        await callback.answer(content, show_alert=True)
     elif callback.data.startswith('look_performer_chats_'):
         performer_telegram_id = callback.data.split('_')[3]
 
@@ -292,4 +292,4 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
                     await callback.message.answer(message,
                                                   parse_mode='HTML')
         else:
-            await callback.message.answer("Чат пока пуст или произошла ошибка.")
+            await callback.answer("Чат пока пуст или произошла ошибка.", show_alert=True)
