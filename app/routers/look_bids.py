@@ -145,7 +145,7 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
 
         content = 'Начните писать мастеру, можете прикрепить видео 📹'
 
-        await callback.message.answer(content)
+        await callback.answer(content)
     elif callback.data.startswith('look_performer_chats_'):
         performer_telegram_id = callback.data.split('_')[3]
 
@@ -230,7 +230,11 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
                                      video=message.video.file_id,
                                      caption=message_content,
                                      parse_mode='HTML',
-                                     reply_markup=chat_answer_keyboard(performer_telegram_id))
+                                     reply_markup=chat_answer_keyboard(bid_id,
+                                                                       customer_telegram_id,
+                                                                       performer_telegram_id,
+                                                                       customer_full_name,
+                                                                       performer_full_name))
     else:
         message_content = f'Заказчик {customer_full_name}:\n\n{message.text}'
 
@@ -245,7 +249,11 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
         await message.bot.send_message(chat_id=performer_chat_id,
                                        text=message_content,
                                        parse_mode='HTML',
-                                       reply_markup=chat_answer_keyboard(performer_telegram_id))
+                                       reply_markup=chat_answer_keyboard(bid_id,
+                                                                         customer_telegram_id,
+                                                                         performer_telegram_id,
+                                                                         customer_full_name,
+                                                                         performer_full_name))
 
 
 @look_bids_router.callback_query(LookBids.chat)

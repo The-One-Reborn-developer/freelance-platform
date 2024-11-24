@@ -72,7 +72,7 @@ async def write_to_customer_handler(callback: CallbackQuery, state: FSMContext):
 
     content = 'Начните писать сообщения заказчику, можете прикрепить видео 📹'
 
-    await callback.message.answer(content)
+    await callback.answer(content)
 
 
 @look_chats_router.message(LookChats.message)
@@ -100,7 +100,11 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
                                      video=message.video.file_id,
                                      caption=message_content,
                                      parse_mode='HTML',
-                                     reply_markup=chat_answer_keyboard(performer_telegram_id))
+                                     reply_markup=chat_answer_keyboard(bid_id,
+                                                                       customer_telegram_id,
+                                                                       performer_telegram_id,
+                                                                       customer_full_name,
+                                                                       performer_full_name))
     else:    
         save_performer_chat_message(bid_id,
                                     customer_telegram_id,
@@ -115,4 +119,8 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
         await message.bot.send_message(chat_id=customer_telegram_id,
                                        text=message_content,
                                        parse_mode='HTML',
-                                       reply_markup=chat_answer_keyboard(performer_telegram_id))
+                                       reply_markup=chat_answer_keyboard(bid_id,
+                                                                         customer_telegram_id,
+                                                                         performer_telegram_id,
+                                                                         customer_full_name,
+                                                                         performer_full_name))
