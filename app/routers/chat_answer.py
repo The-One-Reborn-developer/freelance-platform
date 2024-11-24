@@ -28,7 +28,7 @@ async def chat_answer_handler(callback: CallbackQuery, state: FSMContext):
     performer_telegram_id = callback_data[3]
     customer_full_name = callback_data[4]
     performer_full_name = callback_data[5]
-    is_customer = callback_data[6]
+    is_customer = callback_data[6].lower() == 'true'
 
     await state.update_data(bid_id=bid_id,
                             customer_telegram_id=customer_telegram_id,
