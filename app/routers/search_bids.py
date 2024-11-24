@@ -2,7 +2,6 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from app.tasks.celery_app import get_bids_by_city_task
 from app.tasks.celery_app import get_user_by_telegram_id_task
@@ -15,6 +14,8 @@ from app.scripts.send_response import send_response
 from app.scripts.get_chat import get_chat
 
 from app.keyboards.cities import cities_keyboard
+from app.keyboards.search_bids import (respond_or_look_keyboard,
+                                       look_bid_chat_keyboard)
 
 from app.views.errors import general
 from app.views.bid import choose_city
@@ -55,23 +56,10 @@ async def search_bids_city_handler(callback: CallbackQuery, state: FSMContext):
 
             await state.set_state(SearchBids.selection)
 
-            keyboard = InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [
-                        InlineKeyboardButton(text='Откликнуться 🖐️',
-                                             callback_data=str(bid['id']))
-                    ],
-                    [
-                        InlineKeyboardButton(text='Посмотреть переписки заказчика 📨',
-                                             callback_data=f'look_customer_chats_{bid["customer_telegram_id"]}')
-                    ]
-                ]
-            )
-
             await callback.message.answer(bid_info(bid,
                                                    customer_full_name),
                                                    parse_mode='HTML',
-                                                   reply_markup=keyboard)
+                                                   reply_markup=respond_or_look_keyboard(bid))
     elif bids == []:
         await callback.answer(no_available_bids(), show_alert=True)
     else:
@@ -105,17 +93,12 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
                         additional_content = look_customer_chats_additional_content(response)
                         
                         full_content = base_content + additional_content
-
-                        keyboard = InlineKeyboardMarkup(
-                            inline_keyboard=[
-                                [
-                                    InlineKeyboardButton(text='Смотреть переписку этого заказа 📨',
-                                                            callback_data=f'look_customer_chat_{bid_id}_{customer_telegram_id}_{performer_telegram_id}')
-                                ]
-                            ]
-                        )
                         
-                        await callback.message.answer(full_content, parse_mode='HTML', reply_markup=keyboard)
+                        await callback.message.answer(full_content,
+                                                      parse_mode='HTML',
+                                                      reply_markup=look_bid_chat_keyboard(bid_id,
+                                                                                          customer_telegram_id,
+                                                                                          performer_telegram_id))
                 elif responses == []:
                     await callback.message.answer(look_customer_chats_no_responses(bid_id,
                                                                                    bid_data),
