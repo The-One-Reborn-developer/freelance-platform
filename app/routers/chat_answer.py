@@ -39,9 +39,9 @@ async def chat_answer_handler(callback: CallbackQuery, state: FSMContext):
                             is_customer=is_customer)
     
     if is_customer:
-        content = f'Начните писать ответ заказчику, можете прикрепить видео 📹 {is_customer}'
+        content = f'Начните писать ответ заказчику, можете прикрепить видео 📹'
     else:
-        content = f'Начните писать ответ мастеру, можете прикрепить видео 📹 {is_customer}'
+        content = f'Начните писать ответ мастеру, можете прикрепить видео 📹'
 
     await callback.answer(content, show_alert=True)
 
@@ -59,7 +59,6 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
     if is_customer:
         performer_chat_id = get_user_by_telegram_id_task.delay(performer_telegram_id).get()[7]
 
-        print('save_customer_chat_message')
         if message.video:
             message_content = f'Заказчик {customer_full_name}:\n\n{message.caption}'
             save_customer_chat_message(bid_id,
@@ -100,7 +99,6 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
     elif not is_customer:
         customer_chat_id = get_user_by_telegram_id_task.delay(customer_telegram_id).get()[7]
 
-        print('save_performer_chat_message')
         if message.video:
             save_performer_chat_message(bid_id,
                                         customer_telegram_id,
