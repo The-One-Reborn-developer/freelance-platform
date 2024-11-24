@@ -16,8 +16,8 @@ def send_response(bid_id: int,
 
     performer_data = get_user_by_telegram_id_task.delay(performer_telegram_id).get()
     performer_full_name = performer_data[2]
-    performer_rate = performer_data[3]
-    performer_experience = performer_data[4]
+    performer_rate = performer_data[5]
+    performer_experience = performer_data[6]
     
     customer_chat_id = get_user_by_telegram_id_task.delay(customer_telegram_id).get()[7]
 
