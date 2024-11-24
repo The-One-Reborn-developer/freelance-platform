@@ -29,13 +29,15 @@ async def chat_answer_handler(callback: CallbackQuery, state: FSMContext):
     customer_full_name = callback_data[4]
     performer_full_name = callback_data[5]
     is_customer = callback_data[6] == 'True'
+    is_performer = callback_data[7] == 'True'
 
     await state.update_data(bid_id=bid_id,
                             customer_telegram_id=customer_telegram_id,
                             performer_telegram_id=performer_telegram_id,
                             customer_full_name=customer_full_name,
                             performer_full_name=performer_full_name,
-                            is_customer=is_customer)
+                            is_customer=is_customer,
+                            is_performer=is_performer)
     
     if is_customer:
         content = f'Начните писать ответ заказчику, можете прикрепить видео 📹 {is_customer}'
@@ -53,64 +55,101 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
     performer_telegram_id = data['performer_telegram_id']
     customer_full_name = data['customer_full_name']
     performer_full_name = data['performer_full_name']
-    is_customer = data['is_customer']  # Determines if the sender is the customer
+    is_customer = data['is_customer']
+    is_performer = data['is_performer']
 
-    # Determine recipient and sender roles
-    if is_customer:  # Customer is sending the message
-        recipient_chat_id = get_user_by_telegram_id_task.delay(performer_telegram_id).get()[7]
-        sender_name = f"Заказчик {customer_full_name}"
-    else:  # Performer is sending the message
-        recipient_chat_id = get_user_by_telegram_id_task.delay(customer_telegram_id).get()[7]
-        sender_name = f"Мастер {performer_full_name}"
+    if is_customer and not is_performer:
+        performer_chat_id = get_user_by_telegram_id_task.delay(performer_telegram_id).get()[7]
 
-    # Handle message content based on type
-    if message.video:
-        message_caption = message.caption or ""
-        save_performer_chat_message(
-            bid_id=bid_id if not is_customer else None,
-            customer_telegram_id=customer_telegram_id,
-            performer_telegram_id=performer_telegram_id,
-            customer_full_name=customer_full_name,
-            performer_full_name=performer_full_name,
-            content=message_caption,
-            file_id=message.video.file_id
-        )
-        message_content = f"<u>{sender_name}</u>:\n\n{message_caption}"
-        await message.bot.send_video(
-            chat_id=recipient_chat_id,
-            video=message.video.file_id,
-            caption=message_content,
-            parse_mode='HTML',
-            reply_markup=chat_answer_keyboard(
-                bid_id,
-                customer_telegram_id,
-                performer_telegram_id,
-                customer_full_name,
-                performer_full_name,
-                is_customer=not is_customer  # Flip is_customer for replies
-            )
-        )
-    else:
-        save_performer_chat_message(
-            bid_id=bid_id if not is_customer else None,
-            customer_telegram_id=customer_telegram_id,
-            performer_telegram_id=performer_telegram_id,
-            customer_full_name=customer_full_name,
-            performer_full_name=performer_full_name,
-            content=message.text,
-            file_id=None
-        )
-        message_content = f"<u>{sender_name}</u>:\n\n{message.text}"
-        await message.bot.send_message(
-            chat_id=recipient_chat_id,
-            text=message_content,
-            parse_mode='HTML',
-            reply_markup=chat_answer_keyboard(
-                bid_id,
-                customer_telegram_id,
-                performer_telegram_id,
-                customer_full_name,
-                performer_full_name,
-                is_customer=not is_customer  # Flip is_customer for replies
-            )
-        )
+        if message.video:
+            message_content = f'Заказчик {customer_full_name}:\n\n{message.caption}'
+
+            save_customer_chat_message(bid_id,
+                                    customer_telegram_id,
+                                    performer_telegram_id,
+                                    customer_full_name,
+                                    performer_full_name,
+                                    message.caption,
+                                    message.video.file_id)
+
+            await message.bot.send_video(chat_id=performer_chat_id,
+                                        video=message.video.file_id,
+                                        caption=message_content,
+                                        parse_mode='HTML',
+                                        reply_markup=chat_answer_keyboard(bid_id,
+                                                                        customer_telegram_id,
+                                                                        performer_telegram_id,
+                                                                        customer_full_name,
+                                                                        performer_full_name,
+                                                                        is_customer=True,
+                                                                        is_performer=False))
+        else:
+            message_content = f'Заказчик {customer_full_name}:\n\n{message.text}'
+
+            save_customer_chat_message(bid_id,
+                                    customer_telegram_id,
+                                    performer_telegram_id,
+                                    customer_full_name,
+                                    performer_full_name,
+                                    message.text,
+                                    None)
+
+            await message.bot.send_message(chat_id=performer_chat_id,
+                                        text=message_content,
+                                        parse_mode='HTML',
+                                        reply_markup=chat_answer_keyboard(bid_id,
+                                                                        customer_telegram_id,
+                                                                        performer_telegram_id,
+                                                                        customer_full_name,
+                                                                        performer_full_name,
+                                                                        is_customer=True,
+                                                                        is_performer=False))
+
+    elif not is_customer and is_performer:
+        customer_chat_id = get_user_by_telegram_id_task.delay(customer_telegram_id).get()[7]
+
+        performer_name = get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]
+
+        if message.video:
+            save_performer_chat_message(bid_id,
+                                        customer_telegram_id,
+                                        performer_telegram_id,
+                                        customer_full_name,
+                                        performer_full_name,
+                                        message.caption,
+                                        message.video.file_id)
+
+            message_content = f'<u>Мастер {performer_name}</u>:\n\n{message.caption}'
+
+            await message.bot.send_video(chat_id=customer_chat_id,
+                                        video=message.video.file_id,
+                                        caption=message_content,
+                                        parse_mode='HTML',
+                                        reply_markup=chat_answer_keyboard(bid_id,
+                                                                        customer_telegram_id,
+                                                                        performer_telegram_id,
+                                                                        customer_full_name,
+                                                                        performer_full_name,
+                                                                        is_customer=False,
+                                                                        is_performer=True))
+        else:
+            save_performer_chat_message(bid_id,
+                                        customer_telegram_id,
+                                        performer_telegram_id,
+                                        customer_full_name,
+                                        performer_full_name,
+                                        message.text,
+                                        None)
+
+            message_content = f'<u>Мастер {performer_name}</u>:\n\n{message.text}'
+
+            await message.bot.send_message(chat_id=customer_chat_id,
+                                        text=message_content,
+                                        parse_mode='HTML',
+                                        reply_markup=chat_answer_keyboard(bid_id,
+                                                                            customer_telegram_id,
+                                                                            performer_telegram_id,
+                                                                            customer_full_name,
+                                                                            performer_full_name,
+                                                                            is_customer=False,
+                                                                            is_performer=True))
