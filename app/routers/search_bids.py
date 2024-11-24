@@ -138,11 +138,11 @@ async def look_bids_write_to_performer_handler(callback: CallbackQuery, state: F
         customer_telegram_id = callback.data.split('_')[4]
         performer_telegram_id = callback.data.split('_')[5]
 
-        response = get_chat(bid_id,
-                            customer_telegram_id,
-                            performer_telegram_id)
-        
         try:
+            response = get_chat(bid_id,
+                                customer_telegram_id,
+                                performer_telegram_id)
+            
             if response:
                 messages = [msg.strip() for msg in response.split("---") if msg.strip()]
                 for message in messages:
