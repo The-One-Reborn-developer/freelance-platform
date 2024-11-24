@@ -9,7 +9,7 @@ from app.tasks.celery_app import get_user_by_telegram_id_task
 
 from app.scripts.save_performer_chat_message import save_performer_chat_message
 
-from app.keyboards.menu import performer_menu_keyboard
+from app.keyboards.chat_answer import chat_answer_keyboard
 
 
 look_chats_router = Router()
@@ -99,7 +99,8 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
         await message.bot.send_video(chat_id=customer_telegram_id,
                                      video=message.video.file_id,
                                      caption=message_content,
-                                     parse_mode='HTML')
+                                     parse_mode='HTML',
+                                     reply_markup=chat_answer_keyboard(performer_telegram_id))
     else:    
         save_performer_chat_message(bid_id,
                                     customer_telegram_id,
@@ -113,4 +114,5 @@ async def look_chats_message_handler(message: CallbackQuery, state: FSMContext):
 
         await message.bot.send_message(chat_id=customer_telegram_id,
                                        text=message_content,
-                                       parse_mode='HTML')
+                                       parse_mode='HTML',
+                                       reply_markup=chat_answer_keyboard(performer_telegram_id))

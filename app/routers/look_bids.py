@@ -17,7 +17,7 @@ from app.tasks.celery_app import get_all_performer_chats_task
 from app.scripts.save_customer_chat_message import save_customer_chat_message
 from app.scripts.get_chat import get_chat
 
-from app.keyboards.menu import customer_menu_keyboard
+from app.keyboards.chat_answer import chat_answer_keyboard
 
 
 look_bids_router = Router()
@@ -228,7 +228,9 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
 
         await message.bot.send_video(chat_id=performer_chat_id,
                                      video=message.video.file_id,
-                                     caption=message_content)
+                                     caption=message_content,
+                                     parse_mode='HTML',
+                                     reply_markup=chat_answer_keyboard(performer_telegram_id))
     else:
         message_content = f'Заказчик {customer_full_name}:\n\n{message.text}'
 
@@ -241,7 +243,9 @@ async def look_bids_write_to_performer_handler(message: Message, state: FSMConte
                                    None)
 
         await message.bot.send_message(chat_id=performer_chat_id,
-                                       text=message_content)
+                                       text=message_content,
+                                       parse_mode='HTML',
+                                       reply_markup=chat_answer_keyboard(performer_telegram_id))
 
 
 @look_bids_router.callback_query(LookBids.chat)
