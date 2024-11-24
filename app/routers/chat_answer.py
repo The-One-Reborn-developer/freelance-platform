@@ -103,6 +103,8 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
     else:
         customer_chat_id = get_user_by_telegram_id_task.delay(customer_telegram_id).get()[7]
 
+        performer_name = get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]
+
         if message.video:
             save_performer_chat_message(bid_id,
                                         customer_telegram_id,
@@ -111,8 +113,8 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                         performer_full_name,
                                         message.caption,
                                         message.video.file_id)
-            
-            message_content = f'<u>Мастер {get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}</u>:\n\n<u>{message.caption}</u>'
+
+            message_content = f'<u>Мастер {performer_name}</u>:\n\n{message.caption}'
 
             await message.bot.send_video(chat_id=customer_chat_id,
                                         video=message.video.file_id,
@@ -124,7 +126,7 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                                                         customer_full_name,
                                                                         performer_full_name,
                                                                         is_customer=False))
-        else:    
+        else:
             save_performer_chat_message(bid_id,
                                         customer_telegram_id,
                                         performer_telegram_id,
@@ -132,15 +134,15 @@ async def chat_answer_message_handler(message: Message, state: FSMContext):
                                         performer_full_name,
                                         message.text,
                                         None)
-            
-            message_content = f'<u>Мастер{get_user_by_telegram_id_task.delay(message.from_user.id).get()[2]}</u>:\n\n<u>{message.text}</u>'
+
+            message_content = f'<u>Мастер {performer_name}</u>:\n\n{message.text}'
 
             await message.bot.send_message(chat_id=customer_chat_id,
                                         text=message_content,
                                         parse_mode='HTML',
                                         reply_markup=chat_answer_keyboard(bid_id,
-                                                                        customer_telegram_id,
-                                                                        performer_telegram_id,
-                                                                        customer_full_name,
-                                                                        performer_full_name,
-                                                                        is_customer=False))
+                                                                            customer_telegram_id,
+                                                                            performer_telegram_id,
+                                                                            customer_full_name,
+                                                                            performer_full_name,
+                                                                            is_customer=False))
