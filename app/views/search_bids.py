@@ -3,7 +3,7 @@ def bid_info(bid,
     return f'<b>Номер заказа:</b> <u>{bid["id"]}</u>\n' \
         f'<b>Заказчик:</b> <i>{customer_full_name}</i>\n' \
         f'<b>Описание:</b> {bid["description"]}\n' \
-        f'<b>До какого числа нужно выполнить работу:</b> <i>{bid["deadline"]}</i>\n' \
+        f'<b>Сроки выполнения работы:</b> <i>{bid["deadline"]}</i>\n' \
         f'<b>Предоставляет инструмент:</b> <i>{"Да" if bid["instrument_provided"] == 1 else "Нет"}</i>'
 
 
