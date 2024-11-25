@@ -108,6 +108,8 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
                     await callback.answer(general(), show_alert=True)
         else:
             await callback.answer(customer_no_chats(), show_alert=True)
+    elif callback.data.startswith('answer_'):
+        await state.clear()
     else:
         performer = get_user_by_telegram_id_task.delay(callback.from_user.id).get()
         
