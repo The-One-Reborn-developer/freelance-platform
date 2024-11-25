@@ -30,7 +30,10 @@ def send_response(bid_id: int,
             f'<b>Стаж:</b> <i>{performer_experience}</i>\n\n' \
             'Выберите "Просмотреть мои заказы" в меню, чтобы узнать больше.'
 
-    response = requests.post(url, json={'chat_id': customer_chat_id, 'text': content, 'parse_mode': 'html'})
+    response = requests.post(url, json={'chat_id': customer_chat_id,
+                                        'text': content,
+                                        'parse_mode': 'html',
+                                        'reply_markup': {'inline_keyboard': [[{'text': 'Просмотреть мои заказы', 'callback_data': 'look_bids'}]]}})
 
     if response.status_code == 200:
         return True
