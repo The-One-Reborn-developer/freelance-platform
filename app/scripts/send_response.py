@@ -33,7 +33,8 @@ def send_response(bid_id: int,
     response = requests.post(url, json={'chat_id': customer_chat_id,
                                         'text': content,
                                         'parse_mode': 'html',
-                                        'reply_markup': {'inline_keyboard': [[{'text': 'Просмотреть мои заказы', 'callback_data': 'look_bids'}]]}})
+                                        'reply_markup': {'inline_keyboard': [[{'text': 'Просмотреть мои заказы 📂',
+                                                                               'callback_data': 'look_bids'}]]}})
 
     if response.status_code == 200:
         return True
