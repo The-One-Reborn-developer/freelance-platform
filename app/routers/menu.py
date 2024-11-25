@@ -26,7 +26,7 @@ async def menu_callback_handler(callback: CallbackQuery):
         elif user[3]:
             keyboard = performer_menu_keyboard()
 
-        await callback.message.answer(choose_option(), reply_markup=keyboard) # TODO: REPLACE BACK TO SEPARATE KEYBOARDS AFTER DEVELOPMENT
-        #await callback.message.answer(choose_option(), reply_markup=both_menu_keyboard())
+        #await callback.message.answer(choose_option(), reply_markup=keyboard) # TODO: REPLACE BACK TO SEPARATE KEYBOARDS AFTER DEVELOPMENT
+        await callback.message.answer(choose_option(), reply_markup=both_menu_keyboard())
     else:
         await callback.answer(general(), show_alert=True)
