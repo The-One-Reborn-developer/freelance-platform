@@ -27,7 +27,8 @@ from app.views.search_bids import (bid_info,
                                    look_customer_chats_no_responses,
                                    customer_no_chats,
                                    already_responded,
-                                   successfully_responded)
+                                   successfully_responded,
+                                   click_again)
 
 
 search_bids_router = Router()
@@ -110,6 +111,8 @@ async def search_bids_selection_handler(callback: CallbackQuery, state: FSMConte
             await callback.answer(customer_no_chats(), show_alert=True)
     elif callback.data.startswith('answer_'):
         await state.clear()
+
+        await callback.answer(click_again(), show_alert=True)
     else:
         performer = get_user_by_telegram_id_task.delay(callback.from_user.id).get()
         

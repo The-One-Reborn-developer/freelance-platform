@@ -49,3 +49,7 @@ def already_responded() -> str:
 def successfully_responded(bid_id) -> str:
     return f'Вы успешно откликнулись на заказ №{bid_id}!\n' \
         'Заказчик получит уведомление о Вашем отклике.'
+
+
+def click_again() -> str:
+    return 'Нажмите ещё раз "Ответить", чтобы войти в переписку.'
