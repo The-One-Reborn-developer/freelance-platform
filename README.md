@@ -18,6 +18,8 @@ A [TG](https://t.me/the_one_reborn_bot) bot for customers to post bids and perfo
 * [flask](https://github.com/pallets/flask)
 * [nginx](https://github.com/nginx/nginx)
 * [gunicorn](https://github.com/benoitc/gunicorn)
+* [docker](https://docker.com)
+* [docker-compose](https://github.com/docker/compose)
 
 ## Running
 
