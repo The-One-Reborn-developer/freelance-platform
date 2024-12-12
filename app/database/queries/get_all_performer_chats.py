@@ -1,4 +1,4 @@
-from app.database.queues.get_responses_by_performer_telegram_id import get_responses_by_performer_telegram_id
+from app.database.queries.get_responses_by_performer_telegram_id import get_responses_by_performer_telegram_id
 
 
 def get_all_performer_chats(performer_telegram_id: int) -> list | None:

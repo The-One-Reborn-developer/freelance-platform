@@ -3,7 +3,7 @@ from sqlalchemy import select
 from app.database.models.bids import Response
 from app.database.models.sync_session import sync_session
 
-from app.database.queues.get_bids_by_telegram_id import get_bids_by_telegram_id
+from app.database.queries.get_bids_by_telegram_id import get_bids_by_telegram_id
 
 
 def get_responses_by_customer_telegram_id(customer_telegram_id: int) -> list[dict] | None:
