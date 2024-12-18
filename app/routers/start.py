@@ -41,6 +41,8 @@ class CustomerRegistration(StatesGroup):
 async def start_command_handler(message: Message, state: FSMContext):
     await state.clear()
 
+    await message.answer('Мы переехали: <a href="https://t.me/servis_plus_webapp_bot">новый бот</a>', parse_mode='HTML')
+    '''
     user = get_user_by_telegram_id_task.delay(message.from_user.id).get()
 
     if user != [] and user is not None:
@@ -58,6 +60,7 @@ async def start_command_handler(message: Message, state: FSMContext):
         await message.answer(not_registered(), reply_markup=start_keyboard())
     else:
         await message.answer(general())
+    '''
 
 
 @start_router.callback_query(F.data == 'customer')
